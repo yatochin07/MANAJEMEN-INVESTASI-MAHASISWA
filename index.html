@@ -912,7 +912,7 @@ async function handleLogin() {
   const loginInput =
   document.getElementById(
     'login-email'
-  ).value.trim();
+  ).value.trim().toLowerCase();
 
   const passwordInput =
   document.getElementById(
@@ -939,15 +939,15 @@ async function handleLogin() {
   loginButton.innerHTML =
   '<span class="spinner"></span>Memproses...';
 
- const { data, error } =
-await supabaseClient
-  .from('users')
-  .select('*')
-  .or(
-    username.eq.${loginInput},email.eq.${loginInput}
-  )
-  .eq('password', passwordInput)
-  .maybeSingle();
+  const { data, error } =
+  await supabaseClient
+    .from('users')
+    .select('*')
+    .or(
+      `username.eq.${loginInput},email.eq.${loginInput}`
+    )
+    .eq('password', passwordInput)
+    .maybeSingle();
 
   loginButton.disabled = false;
 
@@ -955,6 +955,8 @@ await supabaseClient
   'Masuk ke Dashboard';
 
   if (error || !data) {
+
+    console.log(error);
 
     alert(
       'Username/email atau password salah'
@@ -986,7 +988,7 @@ async function handleRegister() {
   const emailInput =
   document.querySelector(
     '#register-form input[type="email"]'
-  ).value.trim();
+  ).value.trim().toLowerCase();
 
   const uniInput =
   document.querySelector(
@@ -1080,6 +1082,8 @@ async function handleRegister() {
     ]);
 
   if (error) {
+
+    console.log(error);
 
     alert(
       'Register gagal: ' +
