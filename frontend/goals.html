@@ -413,60 +413,383 @@
   </div>
 
   <script>
-    // --- Auth Check ---
-    const token = localStorage.getItem('userToken');
-    if (!token) window.location.href = 'login.html';
 
-    const user = JSON.parse(localStorage.getItem('userData'));
-    document.addEventListener('DOMContentLoaded', () => {
-       if (user && user.username) {
-        document.getElementById('sidebar-user-name').innerText = user.username;
-        document.getElementById('sidebar-user-initial').innerText = user.username.charAt(0).toUpperCase();
-       }
+// ===============================
+// AUTH CHECK
+// ===============================
+const token =
+localStorage.getItem(
+    'userToken'
+);
 
-       // Animate Progress Bars
-       setTimeout(() => {
-         document.querySelectorAll('.progress-fill').forEach(bar => {
-           const width = bar.style.width;
-           bar.style.width = '0';
-           setTimeout(() => { bar.style.width = width; }, 100);
-         });
-       }, 300);
-    });
+if (!token) {
 
-    function logoutUser() {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        window.location.href = 'login.html';
+    window.location.href =
+    'login.html';
+
+}
+
+// ===============================
+// USER DATA
+// ===============================
+const user =
+JSON.parse(
+    localStorage.getItem(
+        'userData'
+    )
+);
+
+// ===============================
+// DOM READY
+// ===============================
+document.addEventListener(
+'DOMContentLoaded',
+() => {
+
+    // ===========================
+    // LOAD USER INFO
+    // ===========================
+    if (
+        user &&
+        user.username
+    ) {
+
+        document.getElementById(
+            'sidebar-user-name'
+        ).innerText =
+        user.username;
+
+        document.getElementById(
+            'sidebar-user-initial'
+        ).innerText =
+        user.username
+            .charAt(0)
+            .toUpperCase();
+
     }
 
-    const goalForm = document.getElementById('goal-form');
+    // ===========================
+    // ANIMATE PROGRESS BAR
+    // ===========================
+    animateProgressBars();
 
-    goalForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // ===========================
+    // LOAD GOALS
+    // ===========================
+    loadGoals();
 
-        const goalData = {
-            name: document.getElementById('goal-name').value,
-            icon: document.getElementById('goal-icon').value,
-            target: document.getElementById('goal-target').value,
-            deadline: document.getElementById('goal-deadline').value
-        };
+});
 
-        try {
-            const response = await fetch('http://localhost:5000/api/goals', {
+// ===============================
+// ANIMATE PROGRESS BAR
+// ===============================
+function animateProgressBars() {
+
+    setTimeout(() => {
+
+        document
+        .querySelectorAll(
+            '.progress-fill'
+        )
+        .forEach(bar => {
+
+            const width =
+            bar.style.width;
+
+            bar.style.width =
+            '0%';
+
+            setTimeout(() => {
+
+                bar.style.width =
+                width;
+
+            }, 100);
+
+        });
+
+    }, 300);
+
+}
+
+// ===============================
+// LOGOUT
+// ===============================
+function logoutUser() {
+
+    localStorage.removeItem(
+        'userToken'
+    );
+
+    localStorage.removeItem(
+        'userData'
+    );
+
+    window.location.href =
+    'login.html';
+
+}
+
+// ===============================
+// GOAL FORM
+// ===============================
+const goalForm =
+document.getElementById(
+    'goal-form'
+);
+
+// ===============================
+// SUBMIT GOAL
+// ===============================
+goalForm.addEventListener(
+'submit',
+async (e) => {
+
+    e.preventDefault();
+
+    const submitButton =
+    goalForm.querySelector(
+        'button[type="submit"]'
+    );
+
+    submitButton.disabled =
+    true;
+
+    submitButton.innerText =
+    'Menyimpan...';
+
+    const goalData = {
+
+        name:
+        document.getElementById(
+            'goal-name'
+        ).value,
+
+        icon:
+        document.getElementById(
+            'goal-icon'
+        ).value,
+
+        target:
+        Number(
+            document.getElementById(
+                'goal-target'
+            ).value
+        ),
+
+        deadline:
+        document.getElementById(
+            'goal-deadline'
+        ).value
+
+    };
+
+    try {
+
+        const response =
+        await fetch(
+            'http://localhost:5000/api/goals',
+            {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(goalData)
-            });
 
-            const data = await response.json();
-            alert(data.message);
-            console.log(data);
-        } catch (error) {
-            console.log(error);
+                headers: {
+                    'Content-Type':
+                    'application/json'
+                },
+
+                body:
+                JSON.stringify(
+                    goalData
+                )
+            }
+        );
+
+        const data =
+        await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                'Gagal membuat target'
+            );
+
         }
+
+        alert(
+            'Target berhasil dibuat!'
+        );
+
+        goalForm.reset();
+
+        loadGoals();
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert(
+            error.message ||
+            'Terjadi kesalahan'
+        );
+
+    } finally {
+
+        submitButton.disabled =
+        false;
+
+        submitButton.innerText =
+        'Buat Target & Kalkulasi Kalkulator AI';
+
+    }
+
+});
+
+// ===============================
+// LOAD GOALS
+// ===============================
+async function loadGoals() {
+
+    try {
+
+        const response =
+        await fetch(
+            'http://localhost:5000/api/goals'
+        );
+
+        const data =
+        await response.json();
+
+        console.log(
+            'Goals:',
+            data
+        );
+
+    } catch (error) {
+
+        console.log(
+            'Load goals error:',
+            error
+        );
+
+    }
+
+}
+
+// ===============================
+// SCROLL TO FORM
+// ===============================
+function scrollToGoalForm() {
+
+    document
+    .getElementById(
+        'form-section'
+    )
+    .scrollIntoView({
+        behavior: 'smooth'
     });
-  </script>
+
+}
+
+// ===============================
+// CARD HOVER EFFECT
+// ===============================
+const goalCards =
+document.querySelectorAll(
+    '.goal-card'
+);
+
+goalCards.forEach(card => {
+
+    card.addEventListener(
+    'mouseenter',
+    () => {
+
+        card.style.transform =
+        'translateY(-4px)';
+
+    });
+
+    card.addEventListener(
+    'mouseleave',
+    () => {
+
+        card.style.transform =
+        'translateY(0px)';
+
+    });
+
+});
+
+// ===============================
+// AUTO FORMAT RUPIAH
+// ===============================
+const goalTargetInput =
+document.getElementById(
+    'goal-target'
+);
+
+goalTargetInput.addEventListener(
+'input',
+(e) => {
+
+    let value =
+    e.target.value
+        .replace(/\D/g, '');
+
+    e.target.value =
+    value;
+
+});
+
+// ===============================
+// DEADLINE VALIDATION
+// ===============================
+const deadlineInput =
+document.getElementById(
+    'goal-deadline'
+);
+
+deadlineInput.min =
+new Date()
+.toISOString()
+.slice(0, 7);
+
+// ===============================
+// RESPONSIVE MAIN FIX
+// ===============================
+window.addEventListener(
+'resize',
+() => {
+
+    const main =
+    document.querySelector(
+        'main'
+    );
+
+    if (
+        window.innerWidth <= 767
+    ) {
+
+        main.style.maxWidth =
+        '100%';
+
+        main.style.marginLeft =
+        '0';
+
+    } else {
+
+        main.style.maxWidth =
+        'calc(100% - 16rem)';
+
+        main.style.marginLeft =
+        '16rem';
+
+    }
+
+});
+
+</script>
 
 </body>
 </html>
