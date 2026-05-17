@@ -775,7 +775,7 @@
   </div>
 
   <!-- ===== JAVASCRIPT ===== -->
-  <script  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
@@ -783,241 +783,334 @@ const supabaseUrl =
 'https://cltqsgmprrlhrtzxoyzk.supabase.co';
 
 const supabaseKey =
-'ISI_ANON_PUBLIC_KEY_KAMU';
+'PASTE_ANON_KEY_ASLI_KAMU_DI_SINI';
 
 const supabaseClient =
 supabase.createClient(
-    supabaseUrl,
-    supabaseKey
+  supabaseUrl,
+  supabaseKey
 );
-    
-    function switchTab(tab) {
-      const loginForm    = document.getElementById('login-form');
-      const registerForm = document.getElementById('register-form');
-      const tabLogin     = document.getElementById('tab-login');
-      const tabRegister  = document.getElementById('tab-register');
 
-      if (tab === 'login') {
-        loginForm.style.display    = 'block';
-        registerForm.style.display = 'none';
-        loginForm.classList.add('anim-in');
-        tabLogin.classList.add('active');
-        tabRegister.classList.remove('active');
-      } else {
-        loginForm.style.display    = 'none';
-        registerForm.style.display = 'block';
-        registerForm.classList.add('anim-in');
-        tabRegister.classList.add('active');
-        tabLogin.classList.remove('active');
-      }
-    }
+// =====================
+// TAB SWITCH
+// =====================
+function switchTab(tab) {
 
-    // ---- Password Visibility Toggle ----
-    function togglePwd(inputId, btn) {
-      const input = document.getElementById(inputId);
-      const icon  = btn.querySelector('i');
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.className = 'fa-regular fa-eye-slash';
-      } else {
-        input.type = 'password';
-        icon.className = 'fa-regular fa-eye';
-      }
-    }
+  const loginForm =
+  document.getElementById('login-form');
 
-    // ---- Password Strength ----
-    function checkStrength(val) {
-      const bars   = [1,2,3,4].map(i => document.getElementById('str-' + i));
-      const label  = document.getElementById('str-label');
-      const colors = ['#f43f5e','#f59e0b','#06b6d4','#10b981'];
-      const labels_text = ['Sangat Lemah','Sedang','Kuat','Sangat Kuat'];
-      let score = 0;
-      if (val.length >= 8)  score++;
-      if (/[A-Z]/.test(val)) score++;
-      if (/[0-9]/.test(val)) score++;
-      if (/[^A-Za-z0-9]/.test(val)) score++;
+  const registerForm =
+  document.getElementById('register-form');
 
-      bars.forEach((b, i) => {
-        b.style.background = i < score ? colors[score - 1] : 'rgba(255,255,255,0.07)';
-        b.style.transition = 'background 0.3s';
-      });
-      label.textContent = val.length > 0 ? labels_text[score > 0 ? score-1 : 0] : '';
-      label.style.color = score > 0 ? colors[score-1] : '#64748b';
-    }
+  const tabLogin =
+  document.getElementById('tab-login');
 
-    // ==========================================
-    // 1. FUNGSI LOGIN NYATA (KONEK KE BACKEND)
-    // ==========================================
-    async function handleLogin() {
+  const tabRegister =
+  document.getElementById('tab-register');
 
-    const emailInput =
-    document.getElementById(
+  if (tab === 'login') {
+
+    loginForm.style.display = 'block';
+    registerForm.style.display = 'none';
+
+    tabLogin.classList.add('active');
+    tabRegister.classList.remove('active');
+
+  } else {
+
+    loginForm.style.display = 'none';
+    registerForm.style.display = 'block';
+
+    tabRegister.classList.add('active');
+    tabLogin.classList.remove('active');
+
+  }
+
+}
+
+// =====================
+// TOGGLE PASSWORD
+// =====================
+function togglePwd(inputId, btn) {
+
+  const input =
+  document.getElementById(inputId);
+
+  const icon =
+  btn.querySelector('i');
+
+  if (input.type === 'password') {
+
+    input.type = 'text';
+
+    icon.className =
+    'fa-regular fa-eye-slash';
+
+  } else {
+
+    input.type = 'password';
+
+    icon.className =
+    'fa-regular fa-eye';
+
+  }
+
+}
+
+// =====================
+// PASSWORD STRENGTH
+// =====================
+function checkStrength(val) {
+
+  const bars =
+  [1,2,3,4].map(i =>
+    document.getElementById('str-' + i)
+  );
+
+  const label =
+  document.getElementById('str-label');
+
+  const colors =
+  ['#f43f5e','#f59e0b','#06b6d4','#10b981'];
+
+  const labels =
+  ['Sangat Lemah','Sedang','Kuat','Sangat Kuat'];
+
+  let score = 0;
+
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  bars.forEach((bar, index) => {
+
+    bar.style.background =
+    index < score
+      ? colors[score - 1]
+      : 'rgba(255,255,255,0.07)';
+
+  });
+
+  label.textContent =
+  val.length
+    ? labels[Math.max(score - 1, 0)]
+    : '';
+
+  label.style.color =
+  score
+    ? colors[score - 1]
+    : '#64748b';
+
+}
+
+// =====================
+// LOGIN
+// =====================
+async function handleLogin() {
+
+  const emailInput =
+  document.getElementById(
     'login-email'
-    ).value;
+  ).value.trim();
 
-    const passwordInput =
-    document.getElementById(
+  const passwordInput =
+  document.getElementById(
     'login-password'
-    ).value;
+  ).value.trim();
 
-    if (
-        !emailInput ||
-        !passwordInput
-    ) {
+  if (!emailInput || !passwordInput) {
 
-        alert(
-        'Isi email dan password'
-        );
+    alert('Isi email dan password');
 
-        return;
+    return;
 
-    }
+  }
 
-    const { data, error } =
-    await supabaseClient
+  const loginButton =
+  document.getElementById('btn-login');
+
+  loginButton.disabled = true;
+
+  loginButton.innerHTML =
+  '<span class="spinner"></span>Memproses...';
+
+  const { data, error } =
+  await supabaseClient
     .from('users')
     .select('*')
     .eq('email', emailInput)
-    .eq('password', passwordInput);
+    .eq('password', passwordInput)
+    .single();
 
-    if (error) {
+  loginButton.disabled = false;
 
-        alert(error.message);
+  loginButton.innerHTML =
+  'Masuk ke Dashboard';
 
-        return;
+  if (error || !data) {
 
-    }
+    alert('Email atau password salah');
 
-    if (data.length > 0) {
+    return;
 
-        localStorage.setItem(
-            'userData',
-            JSON.stringify(data[0])
-        );
+  }
 
-        showSuccess();
+  localStorage.setItem(
+    'userData',
+    JSON.stringify(data)
+  );
 
-    } else {
-
-        alert(
-        'Email atau password salah'
-        );
-
-    }
+  showSuccess();
 
 }
 
-    // ==========================================
-    // 2. FUNGSI REGISTER NYATA (KONEK KE BACKEND)
-    // ==========================================
-    async function handleRegister() {
+// =====================
+// REGISTER
+// =====================
+async function handleRegister() {
 
-    const nameInput =
-    document.querySelector(
+  const nameInput =
+  document.querySelector(
     '#register-form input[autocomplete="name"]'
-    ).value;
+  ).value.trim();
 
-    const emailInput =
-    document.querySelector(
+  const emailInput =
+  document.querySelector(
     '#register-form input[type="email"]'
-    ).value;
+  ).value.trim();
 
-    const uniInput =
-    document.querySelector(
+  const uniInput =
+  document.querySelector(
     '#register-form input[placeholder="Universitas Indonesia"]'
-    ).value;
+  ).value.trim();
 
-    const passwordInput =
-    document.getElementById(
+  const passwordInput =
+  document.getElementById(
     'reg-password'
-    ).value;
+  ).value.trim();
 
-    const termsCheck =
-    document.getElementById(
+  const termsCheck =
+  document.getElementById(
     'terms'
-    ).checked;
+  ).checked;
 
-    if (
-        !nameInput ||
-        !emailInput ||
-        !passwordInput
-    ) {
+  if (
+    !nameInput ||
+    !emailInput ||
+    !passwordInput
+  ) {
 
-        alert(
-        'Isi semua field'
-        );
+    alert('Isi semua field');
 
-        return;
+    return;
 
-    }
+  }
 
-    if (!termsCheck) {
+  if (!termsCheck) {
 
-        alert(
-        'Setujui syarat & ketentuan'
-        );
+    alert(
+      'Setujui syarat & ketentuan'
+    );
 
-        return;
+    return;
 
-    }
+  }
 
-    const { error } =
-    await supabaseClient
+  // cek email sudah ada atau belum
+  const { data: existingUser } =
+  await supabaseClient
+    .from('users')
+    .select('email')
+    .eq('email', emailInput)
+    .maybeSingle();
+
+  if (existingUser) {
+
+    alert('Email sudah terdaftar');
+
+    return;
+
+  }
+
+  const { error } =
+  await supabaseClient
     .from('users')
     .insert([
-        {
-            name: nameInput,
-            email: emailInput,
-            university: uniInput,
-            password: passwordInput
-        }
+      {
+        name: nameInput,
+        email: emailInput,
+        university: uniInput,
+        password: passwordInput
+      }
     ]);
 
-    if (error) {
+  if (error) {
 
-        alert(
-        'Register gagal: ' +
-        error.message
-        );
+    alert(
+      'Register gagal: ' +
+      error.message
+    );
 
-    } else {
+    return;
 
-        alert(
-        'Register berhasil'
-        );
+  }
 
-        switchTab('login');
+  alert('Register berhasil');
 
-    }
+  switchTab('login');
 
 }
 
-    // ---- Success overlay ----
-    function showSuccess() {
-      const overlay = document.getElementById('success-overlay');
-      overlay.style.display = 'flex';
-      
-      setTimeout(() => {
-        overlay.style.display = 'none';
-        window.location.href = 'dashboard.html'; 
-      }, 2400);
+// =====================
+// SUCCESS OVERLAY
+// =====================
+function showSuccess() {
+
+  const overlay =
+  document.getElementById(
+    'success-overlay'
+  );
+
+  overlay.style.display = 'flex';
+
+  setTimeout(() => {
+
+    overlay.style.display = 'none';
+
+    window.location.href =
+    'dashboard.html';
+
+  }, 2400);
+
+}
+
+// =====================
+// ENTER SUPPORT
+// =====================
+document.addEventListener(
+  'keydown',
+  (e) => {
+
+    if (e.key === 'Enter') {
+
+      const loginVisible =
+      document.getElementById(
+        'login-form'
+      ).style.display !== 'none';
+
+      if (loginVisible) {
+
+        handleLogin();
+
+      }
+
     }
 
-    // ---- Clear error on input ----
-    document.addEventListener('DOMContentLoaded', () => {
-      ['login-email','login-password'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', () => {
-          el.classList.remove('input-error');
-        });
-      });
+  }
+);
 
-      // Enter key support
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          const loginVisible = document.getElementById('login-form').style.display !== 'none';
-          if (loginVisible) handleLogin();
-        }
-      });
-    });
-  </script>
+</script>
+
+</body>
+</html>
