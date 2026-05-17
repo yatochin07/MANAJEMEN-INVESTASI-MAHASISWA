@@ -303,236 +303,572 @@
   </div>
 
   <script>
-    // --- Auth Check ---
-    const token = localStorage.getItem('userToken');
-    if (!token) window.location.href = 'login.html';
 
-    const user = JSON.parse(localStorage.getItem('userData'));
-    document.addEventListener('DOMContentLoaded', () => {
-       if (user && user.username) {
-        document.getElementById('sidebar-user-name').innerText = user.username;
-        document.getElementById('sidebar-user-initial').innerText = user.username.charAt(0).toUpperCase();
-       }
-       
-       // Initialize UI on first load
-       updateUI();
+// ===============================
+// USER DATA
+// ===============================
+const user =
+JSON.parse(
+    localStorage.getItem(
+        'userData'
+    )
+);
+
+// ===============================
+// DOM READY
+// ===============================
+document.addEventListener(
+'DOMContentLoaded',
+() => {
+
+    loadUserData();
+    updateUI();
+
+});
+
+// ===============================
+// LOAD USER
+// ===============================
+function loadUserData() {
+
+    const sidebarName =
+    document.getElementById(
+        'sidebar-user-name'
+    );
+
+    const sidebarInitial =
+    document.getElementById(
+        'sidebar-user-initial'
+    );
+
+    const username =
+    user?.username || 'Mahasiswa';
+
+    if (sidebarName) {
+
+        sidebarName.innerText =
+        username;
+
+    }
+
+    if (sidebarInitial) {
+
+        sidebarInitial.innerText =
+        username
+            .charAt(0)
+            .toUpperCase();
+
+    }
+
+}
+
+// ===============================
+// LOGOUT
+// ===============================
+function logoutUser() {
+
+    localStorage.removeItem(
+        'userToken'
+    );
+
+    localStorage.removeItem(
+        'userData'
+    );
+
+    alert(
+        'Logout berhasil'
+    );
+
+}
+
+// ===============================
+// BROKER DATA
+// ===============================
+const brokers = {
+
+    saham: [
+
+        {
+            name: "Ajaib Sekuritas",
+            buyFee: 0.0015,
+            sellFee: 0.0025
+        },
+
+        {
+            name: "Stockbit / Mahakarya",
+            buyFee: 0.0015,
+            sellFee: 0.0025
+        },
+
+        {
+            name: "Mandiri Sekuritas",
+            buyFee: 0.0018,
+            sellFee: 0.0028
+        }
+
+    ],
+
+    kripto: [
+
+        {
+            name: "Tokocrypto",
+            buyFee: 0.001,
+            sellFee: 0.001
+        },
+
+        {
+            name: "Indodax",
+            buyFee: 0.0011,
+            sellFee: 0.0011
+        },
+
+        {
+            name: "Ajaib Kripto",
+            buyFee: 0.001,
+            sellFee: 0.001
+        }
+
+    ],
+
+    emas: [
+
+        {
+            name: "Emas Digital",
+            buyFee: 0.005,
+            sellFee: 0.015
+        }
+
+    ]
+
+};
+
+// ===============================
+// FORMAT RUPIAH
+// ===============================
+function formatRupiah(
+    value
+) {
+
+    return new Intl.NumberFormat(
+        'id-ID',
+        {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }
+    ).format(value);
+
+}
+
+// ===============================
+// UPDATE UI
+// ===============================
+function updateUI() {
+
+    const instrumentInput =
+    document.querySelector(
+        'input[name="instrument"]:checked'
+    );
+
+    if (!instrumentInput) return;
+
+    const instrument =
+    instrumentInput.value;
+
+    const brokerSelect =
+    document.getElementById(
+        'calc-broker'
+    );
+
+    if (!brokerSelect) return;
+
+    // RESET OPTION
+    brokerSelect.innerHTML = '';
+
+    brokers[instrument].forEach(
+    (broker, index) => {
+
+        const option =
+        document.createElement(
+            'option'
+        );
+
+        option.value =
+        index;
+
+        option.textContent =
+        broker.name;
+
+        brokerSelect.appendChild(
+            option
+        );
+
     });
 
-    function logoutUser() {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        window.location.href = 'login.html';
+    // LABEL
+    const labelPrice =
+    document.getElementById(
+        'label-price'
+    );
+
+    const tipTitle =
+    document.getElementById(
+        'tip-title'
+    );
+
+    const tipDesc =
+    document.getElementById(
+        'tip-desc'
+    );
+
+    if (
+        instrument === 'saham'
+    ) {
+
+        labelPrice.innerText =
+        'Harga Saham / Lembar';
+
+        tipTitle.innerText =
+        'Tahukah Kamu? (Saham IDX)';
+
+        tipDesc.innerHTML =
+        `
+        Saat jual saham ada tambahan
+        PPh Final 0.1%
+        dari nilai bruto transaksi.
+        `;
+
     }
 
-    // --- Calculator Engine ---
-    const brokers = {
-      saham: [
-        { name: "Ajaib Sekuritas", buyFee: 0.0015, sellFee: 0.0025, tax: "ppn_pph" },
-        { name: "Stockbit / Mahakarya", buyFee: 0.0015, sellFee: 0.0025, tax: "ppn_pph" },
-        { name: "Mandiri Sekuritas", buyFee: 0.0018, sellFee: 0.0028, tax: "ppn_pph" }
-      ],
-      kripto: [
-        { name: "Tokocrypto", buyFee: 0.001, sellFee: 0.001, tax: "ppn_pph_kripto" },
-        { name: "Indodax", buyFee: 0.0011, sellFee: 0.0011, tax: "ppn_pph_kripto" },
-        { name: "Ajaib Kripto", buyFee: 0.001, sellFee: 0.001, tax: "ppn_pph_kripto" }
-      ],
-      emas: [
-        { name: "Emas Digital (Umum)", buyFee: 0.005, sellFee: 0.015, tax: "none" }
-      ]
-    };
+    else if (
+        instrument === 'kripto'
+    ) {
 
-    function updateUI() {
-      const inst = document.querySelector('input[name="instrument"]:checked').value;
-      const type = document.getElementById('calc-type').value;
-      const brokerSelect = document.getElementById('calc-broker');
-      
-      // Update broker options
-      brokerSelect.innerHTML = "";
-      brokers[inst].forEach((b, index) => {
-        brokerSelect.innerHTML += `<option value="${index}">${b.name}</option>`;
-      });
+        labelPrice.innerText =
+        'Harga Koin';
 
-      // Update Labels
-      const labelPrice = document.getElementById('label-price');
-      const tipTitle = document.getElementById('tip-title');
-      const tipDesc = document.getElementById('tip-desc');
+        tipTitle.innerText =
+        'Tahukah Kamu? (Kripto)';
 
-      if (inst === 'saham') {
-        labelPrice.innerText = "Harga Saham / Lembar";
-        tipTitle.innerText = "Tahukah Kamu? (Saham IDX)";
-        tipDesc.innerHTML = "Di Bursa Efek Indonesia, 1 Lot = 100 lembar. Kamu tidak bisa membeli pecahan saham (kurang dari 100 lembar) di pasar reguler. Fee sudah termasuk PPN 11% (dari komisi) dan *Levy* (biaya bursa).";
-      } else if (inst === 'kripto') {
-        labelPrice.innerText = "Harga Koin (IDR)";
-        tipTitle.innerText = "Tahukah Kamu? (Kripto Indonesia)";
-        tipDesc.innerHTML = "Transaksi kripto di bursa resmi Indonesia (Bappebti) dikenakan PPN 0.11% (saat beli) dan PPh 0.1% (saat jual) secara otomatis, dipotong dari *wallet* kamu.";
-      } else if (inst === 'emas') {
-        labelPrice.innerText = "Harga Emas / Gram";
-        tipTitle.innerText = "Tahukah Kamu? (Emas)";
-        tipDesc.innerHTML = "Emas adalah pelindung nilai jangka panjang. Hati-hati dengan *spread* (selisih harga beli dan harga jual (*buyback*)). Kadang selisihnya bisa mencapai Rp 50.000 per gram!";
-      }
+        tipDesc.innerHTML =
+        `
+        Transaksi kripto di Indonesia
+        dikenakan PPN dan PPh final.
+        `;
 
-      calculateFee();
     }
 
-    function calculateFee() {
-      const inst = document.querySelector('input[name="instrument"]:checked').value;
-      const trxType = document.getElementById('calc-type').value;
-      const brokerIndex = document.getElementById('calc-broker').value;
-      const budget = parseFloat(document.getElementById('calc-budget').value) || 0;
-      const price = parseFloat(document.getElementById('calc-price').value) || 0;
+    else {
 
-      if (budget === 0 || price === 0 || !brokerIndex) return;
+        labelPrice.innerText =
+        'Harga Emas / Gram';
 
-      const broker = brokers[inst][brokerIndex];
-      let unitMultiplier = 1; // Default
-      let unitName = "";
-      let feeRate = trxType === 'beli' ? broker.buyFee : broker.sellFee;
-      
-      let baseTaxRate = 0;
+        tipTitle.innerText =
+        'Tahukah Kamu? (Emas)';
 
-      // Konfigurasi Spesifik Instrumen
-      if (inst === 'saham') {
-        unitMultiplier = 100; // 1 Lot = 100 lembar
-        unitName = "Lot";
-        // Simulasi Pajak Saham (PPN 11% dari broker fee + Levy, PPh 0.1% dari transaksi gross jika jual)
-        // Untuk penyederhanaan kalkulator mahasiswa, kita gabung di UI display.
-      } else if (inst === 'kripto') {
-        unitMultiplier = 1;
-        unitName = "Koin";
-      } else if (inst === 'emas') {
-        unitMultiplier = 1;
-        unitName = "Gram";
-      }
+        tipDesc.innerHTML =
+        `
+        Spread emas fisik cukup besar.
+        Cocok untuk investasi jangka panjang.
+        `;
 
-      // 1. Tentukan Maksimal Volume yang Bisa Dibeli (Mencegah saldo minus)
-      // Rumus: (Harga * Multiplier * Volume) + Fee = Budget
-      // Volume = Budget / ((Harga * Multiplier) * (1 + TotalFeeRate))
-      
-      const pricePerUnit = price * unitMultiplier;
-      let totalFeePercentage = feeRate; // Start with base fee
-
-      // Tambah estimasi pajak murni ke persentase pembagi
-      if (inst === 'saham' && trxType === 'jual') totalFeePercentage += 0.001; // PPh Final 0.1%
-      if (inst === 'kripto' && trxType === 'beli') totalFeePercentage += 0.0011; // PPN 0.11%
-      if (inst === 'kripto' && trxType === 'jual') totalFeePercentage += 0.001; // PPh 0.1%
-
-      // Calculate Max Unit (Floor for stocks to get exact lots, decimals for crypto/gold)
-      let maxUnit = budget / (pricePerUnit * (1 + totalFeePercentage));
-      
-      if (inst === 'saham') {
-        maxUnit = Math.floor(maxUnit); // Harus lot utuh
-      } else {
-        maxUnit = Number(maxUnit.toFixed(5)); // Kripto bisa pecahan
-      }
-
-      // 2. Hitung Nominal Riil dari Max Unit Tersebut
-      const grossTransaction = maxUnit * pricePerUnit;
-      const feeAmount = grossTransaction * feeRate;
-      
-      let taxAmount = 0;
-      let taxLabel = "PPN / PPh:";
-
-      if (inst === 'saham') {
-        // PPN 11% dari fee broker
-        let ppn = feeAmount * 0.11; 
-        let pph = trxType === 'jual' ? grossTransaction * 0.001 : 0;
-        taxAmount = ppn + pph;
-        taxLabel = trxType === 'beli' ? "PPN (11% dr Fee):" : "PPN + PPh Final:";
-      } else if (inst === 'kripto') {
-        taxAmount = trxType === 'beli' ? grossTransaction * 0.0011 : grossTransaction * 0.001;
-        taxLabel = trxType === 'beli' ? "PPN Final (0.11%):" : "PPh Final (0.1%):";
-      } else {
-        taxAmount = 0; // Emas digital biasanya fee sdh net
-        taxLabel = "Pajak:";
-      }
-
-      const totalFeeTax = feeAmount + taxAmount;
-      const totalPay = trxType === 'beli' ? grossTransaction + totalFeeTax : grossTransaction - totalFeeTax;
-      
-      // Saldo Sisa (Jika Beli) atau Saldo Bertambah (Jika Jual)
-      let remainder = 0;
-      if(trxType === 'beli') {
-        remainder = budget - totalPay;
-      } else {
-        // Jika jual, asumsikan budget adalah 'Kas Saat Ini', maka kas + hasil jual
-        remainder = budget + totalPay;
-      }
-
-      // Format uang Rupiah
-      const fmt = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
-
-      // --- UPDATE DOM ---
-      document.getElementById('res-budget').innerText = fmt(budget);
-      document.getElementById('res-unit-label').innerText = inst.charAt(0).toUpperCase() + inst.slice(1);
-      document.getElementById('res-price').innerText = fmt(price);
-      
-      document.getElementById('res-max-unit').innerText = maxUnit > 0 ? `${maxUnit} ${unitName}` : `0 ${unitName}`;
-      document.getElementById('res-max-desc').innerText = inst === 'saham' ? `(${maxUnit * 100} Lembar)` : '';
-      
-      document.getElementById('res-gross').innerText = fmt(grossTransaction);
-      
-      document.getElementById('res-fee-label').innerText = `Fee Broker (${(feeRate * 100).toFixed(2)}%):`;
-      document.getElementById('res-fee-amount').innerText = trxType === 'beli' ? `+ ${fmt(feeAmount)}` : `- ${fmt(feeAmount)}`;
-      
-      document.getElementById('res-tax-label').innerText = taxLabel;
-      document.getElementById('res-tax-amount').innerText = trxType === 'beli' ? `+ ${fmt(taxAmount)}` : `- ${fmt(taxAmount)}`;
-      
-      document.getElementById('res-total-pay').innerText = fmt(totalPay);
-      
-      const remainderEl = document.getElementById('res-remainder');
-      remainderEl.innerText = fmt(remainder);
-      
-      // Warn if no unit can be bought
-      if (maxUnit <= 0) {
-        remainderEl.classList.replace('text-emerald-300', 'text-rose-400');
-        document.getElementById('res-max-unit').classList.replace('text-white', 'text-rose-400');
-      } else {
-        remainderEl.classList.replace('text-rose-400', 'text-emerald-300');
-        document.getElementById('res-max-unit').classList.replace('text-rose-400', 'text-white');
-      }
     }
 
-    async function calculateToBackend() {
+    calculateFee();
+
+}
+
+// ===============================
+// MAIN CALCULATOR
+// ===============================
+function calculateFee() {
+
+    const instrument =
+    document.querySelector(
+        'input[name="instrument"]:checked'
+    )?.value;
+
+    const transactionType =
+    document.getElementById(
+        'calc-type'
+    )?.value;
+
+    const brokerIndex =
+    parseInt(
+        document.getElementById(
+            'calc-broker'
+        )?.value || 0
+    );
+
+    const budget =
+    parseFloat(
+        document.getElementById(
+            'calc-budget'
+        )?.value
+    ) || 0;
+
+    const price =
+    parseFloat(
+        document.getElementById(
+            'calc-price'
+        )?.value
+    ) || 0;
+
+    if (
+        !instrument ||
+        budget <= 0 ||
+        price <= 0
+    ) return;
+
+    const broker =
+    brokers[instrument][brokerIndex];
+
+    if (!broker) return;
+
+    const feeRate =
+    transactionType === 'beli'
+    ? broker.buyFee
+    : broker.sellFee;
+
+    // ===========================
+    // UNIT CONFIG
+    // ===========================
+    let multiplier = 1;
+    let unitName = '';
+
+    if (
+        instrument === 'saham'
+    ) {
+
+        multiplier = 100;
+        unitName = 'Lot';
+
+    }
+
+    else if (
+        instrument === 'kripto'
+    ) {
+
+        unitName = 'Koin';
+
+    }
+
+    else {
+
+        unitName = 'Gram';
+
+    }
+
+    // ===========================
+    // TAX
+    // ===========================
+    let taxRate = 0;
+
+    if (
+        instrument === 'saham' &&
+        transactionType === 'jual'
+    ) {
+
+        taxRate = 0.001;
+
+    }
+
+    if (
+        instrument === 'kripto'
+    ) {
+
+        taxRate =
+        transactionType === 'beli'
+        ? 0.0011
+        : 0.001;
+
+    }
+
+    // ===========================
+    // CALC
+    // ===========================
+    const totalRate =
+    feeRate + taxRate;
+
+    const unitPrice =
+    price * multiplier;
+
+    let maxUnit =
+    budget /
+    (
+        unitPrice *
+        (1 + totalRate)
+    );
+
+    if (
+        instrument === 'saham'
+    ) {
+
+        maxUnit =
+        Math.floor(maxUnit);
+
+    }
+
+    else {
+
+        maxUnit =
+        Number(
+            maxUnit.toFixed(5)
+        );
+
+    }
+
+    const gross =
+    maxUnit * unitPrice;
+
+    const fee =
+    gross * feeRate;
+
+    const tax =
+    gross * taxRate;
+
+    const total =
+    transactionType === 'beli'
+    ? gross + fee + tax
+    : gross - fee - tax;
+
+    const remainder =
+    transactionType === 'beli'
+    ? budget - total
+    : budget + total;
+
+    // ===========================
+    // UPDATE RESULT
+    // ===========================
+    document.getElementById(
+        'res-budget'
+    ).innerText =
+    formatRupiah(budget);
+
+    document.getElementById(
+        'res-price'
+    ).innerText =
+    formatRupiah(price);
+
+    document.getElementById(
+        'res-unit-label'
+    ).innerText =
+    instrument;
+
+    document.getElementById(
+        'res-max-unit'
+    ).innerText =
+    `${maxUnit} ${unitName}`;
+
+    document.getElementById(
+        'res-max-desc'
+    ).innerText =
+    instrument === 'saham'
+    ? `(${maxUnit * 100} Lembar)`
+    : '';
+
+    document.getElementById(
+        'res-gross'
+    ).innerText =
+    formatRupiah(gross);
+
+    document.getElementById(
+        'res-fee-label'
+    ).innerText =
+    `Fee Broker (${(feeRate * 100).toFixed(2)}%)`;
+
+    document.getElementById(
+        'res-fee-amount'
+    ).innerText =
+    `- ${formatRupiah(fee)}`;
+
+    document.getElementById(
+        'res-tax-amount'
+    ).innerText =
+    `- ${formatRupiah(tax)}`;
+
+    document.getElementById(
+        'res-total-pay'
+    ).innerText =
+    formatRupiah(total);
+
+    const remainderEl =
+    document.getElementById(
+        'res-remainder'
+    );
+
+    remainderEl.innerText =
+    formatRupiah(remainder);
+
+    // COLOR WARNING
+    if (maxUnit <= 0) {
+
+        remainderEl.classList.remove(
+            'text-emerald-300'
+        );
+
+        remainderEl.classList.add(
+            'text-rose-400'
+        );
+
+    }
+
+    else {
+
+        remainderEl.classList.remove(
+            'text-rose-400'
+        );
+
+        remainderEl.classList.add(
+            'text-emerald-300'
+        );
+
+    }
+
+}
+
+// ===============================
+// OPTIONAL BACKEND REQUEST
+// ===============================
+async function calculateToBackend() {
 
     try {
 
         const instrument =
         document.querySelector(
             'input[name="instrument"]:checked'
-        ).value;
+        )?.value;
 
         const transactionType =
         document.getElementById(
             'calc-type'
-        ).value;
+        )?.value;
 
         const budget =
         parseFloat(
             document.getElementById(
                 'calc-budget'
-            ).value
-        );
+            )?.value
+        ) || 0;
 
         const price =
         parseFloat(
             document.getElementById(
                 'calc-price'
-            ).value
-        );
+            )?.value
+        ) || 0;
 
-        const response = await fetch(
+        const response =
+        await fetch(
 
             'http://localhost:5000/api/calculator',
 
             {
-
                 method: 'POST',
 
                 headers: {
-
                     'Content-Type':
                     'application/json'
-
                 },
 
                 body: JSON.stringify({
@@ -548,21 +884,35 @@
 
         );
 
+        if (!response.ok) {
+
+            throw new Error(
+                'Backend error'
+            );
+
+        }
+
         const data =
         await response.json();
 
-        console.log(data);
+        console.log(
+            'Backend Response:',
+            data
+        );
 
     }
 
     catch (error) {
 
-        console.log(error);
+        console.log(
+            'Calculator backend offline:',
+            error.message
+        );
 
     }
 
-    calculateToBackend();
 }
-  </script>
+
+</script>
 </body>
 </html>
