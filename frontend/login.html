@@ -777,7 +777,21 @@
   <!-- ===== JAVASCRIPT ===== -->
   <script>
     // ---- Tab Switcher ----
-    src="https://cltqsgmprrlhrtzxoyzk.supabase.co/rest/v1/"
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const supabaseUrl =
+'https://cltqsgmprrlhrtzxoyzk.supabase.co';
+
+const supabaseKey =
+'ISI_ANON_PUBLIC_KEY_KAMU';
+
+const supabaseClient =
+supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+);
     
     function switchTab(tab) {
       const loginForm    = document.getElementById('login-form');
@@ -837,118 +851,148 @@
     // 1. FUNGSI LOGIN NYATA (KONEK KE BACKEND)
     // ==========================================
     async function handleLogin() {
-      const emailInput = document.getElementById('login-email');
-      const pwdInput   = document.getElementById('login-password');
-      const errEmail   = document.getElementById('err-email');
-      const errPwd     = document.getElementById('err-password');
-      const btn        = document.getElementById('btn-login');
 
-      let valid = true;
+    const emailInput =
+    document.getElementById(
+    'login-email'
+    ).value;
 
-      // Hapus pesan eror lama
-      emailInput.classList.remove('input-error');
-      pwdInput.classList.remove('input-error');
-      errEmail.classList.remove('show');
-      errPwd.classList.remove('show');
+    const passwordInput =
+    document.getElementById(
+    'login-password'
+    ).value;
 
-      if (!emailInput.value.trim()) {
-        emailInput.classList.add('input-error');
-        errEmail.classList.add('show');
-        valid = false;
-      }
-      if (!pwdInput.value.trim()) {
-        pwdInput.classList.add('input-error');
-        errPwd.classList.add('show');
-        valid = false;
-      }
+    if (
+        !emailInput ||
+        !passwordInput
+    ) {
 
-      if (!valid) return;
+        alert(
+        'Isi email dan password'
+        );
 
-      // Nyalakan animasi loading
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Memverifikasi…';
+        return;
 
-      try {
-        // Tembak API Backend (Pastikan port backend kamu 5000)
-        const response = await fetch('http://localhost:5000/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-    login: emailInput.value.trim(),
-    password: pwdInput.value.trim()
-})
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          // Jika sukses, simpan token keamanan di browser
-          localStorage.setItem('userToken', data.token);
-          localStorage.setItem(
-    'userData',
-    JSON.stringify(data.user)
-);
-          
-          // Jalankan animasi sukses dan pindah halaman
-          showSuccess();
-        } else {
-          // Jika salah password/email tidak terdaftar
-          btn.disabled = false;
-          btn.innerHTML = 'Masuk ke Dashboard';
-          alert('Login Gagal: ' + (data.message || 'Periksa kembali email dan password.'));
-        }
-      } catch (error) {
-        // Jika server mati atau tidak merespons
-        btn.disabled = false;
-        btn.innerHTML = 'Masuk ke Dashboard';
-        alert('Eror Server: Tidak dapat terhubung ke Backend.');
-        console.error(error);
-      }
     }
+
+    const { data, error } =
+    await supabaseClient
+    .from('users')
+    .select('*')
+    .eq('email', emailInput)
+    .eq('password', passwordInput);
+
+    if (error) {
+
+        alert(error.message);
+
+        return;
+
+    }
+
+    if (data.length > 0) {
+
+        localStorage.setItem(
+            'userData',
+            JSON.stringify(data[0])
+        );
+
+        showSuccess();
+
+    } else {
+
+        alert(
+        'Email atau password salah'
+        );
+
+    }
+
+}
 
     // ==========================================
     // 2. FUNGSI REGISTER NYATA (KONEK KE BACKEND)
     // ==========================================
     async function handleRegister() {
-      // Ambil data dari form
-      const nameInput = document.querySelector('#register-form input[autocomplete="name"]').value;
-      const emailInput = document.querySelector('#register-form input[type="email"]').value;
-      const uniInput = document.querySelector('#register-form input[placeholder="Universitas Indonesia"]').value;
-      const passwordInput = document.getElementById('reg-password').value;
-      const termsCheck = document.getElementById('terms').checked;
 
-      if (!nameInput || !emailInput || !passwordInput) {
-        return alert("Harap isi Nama, Email, dan Password.");
-      }
-      if (!termsCheck) {
-        return alert("Anda harus menyetujui Syarat & Ketentuan.");
-      }
+    const nameInput =
+    document.querySelector(
+    '#register-form input[autocomplete="name"]'
+    ).value;
 
-      try {
-        const response = await fetch('http://localhost:5000/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: nameInput,
+    const emailInput =
+    document.querySelector(
+    '#register-form input[type="email"]'
+    ).value;
+
+    const uniInput =
+    document.querySelector(
+    '#register-form input[placeholder="Universitas Indonesia"]'
+    ).value;
+
+    const passwordInput =
+    document.getElementById(
+    'reg-password'
+    ).value;
+
+    const termsCheck =
+    document.getElementById(
+    'terms'
+    ).checked;
+
+    if (
+        !nameInput ||
+        !emailInput ||
+        !passwordInput
+    ) {
+
+        alert(
+        'Isi semua field'
+        );
+
+        return;
+
+    }
+
+    if (!termsCheck) {
+
+        alert(
+        'Setujui syarat & ketentuan'
+        );
+
+        return;
+
+    }
+
+    const { error } =
+    await supabaseClient
+    .from('users')
+    .insert([
+        {
+            name: nameInput,
             email: emailInput,
             university: uniInput,
             password: passwordInput
-          })
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          alert('Pendaftaran Berhasil! Silakan masuk dengan akun baru Anda.');
-          switchTab('login'); // Otomatis pindah ke layar login
-        } else {
-          alert('Gagal Mendaftar: ' + (data.message || 'Email mungkin sudah digunakan.'));
         }
-      } catch (error) {
-        alert('Eror Server: Tidak dapat terhubung ke Backend.');
-        console.error(error);
-      }
+    ]);
+
+    if (error) {
+
+        alert(
+        'Register gagal: ' +
+        error.message
+        );
+
+    } else {
+
+        alert(
+        'Register berhasil'
+        );
+
+        switchTab('login');
+
     }
+
+}
 
     // ---- Success overlay ----
     function showSuccess() {
