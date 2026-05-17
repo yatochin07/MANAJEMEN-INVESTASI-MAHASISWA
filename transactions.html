@@ -333,50 +333,333 @@
   </div>
 
   <script>
-    // --- Auth Check ---
-    const token = localStorage.getItem('userToken');
-    if (!token) window.location.href = 'login.html';
 
-    const user = JSON.parse(localStorage.getItem('userData'));
-    document.addEventListener('DOMContentLoaded', () => {
-       if (user && user.username) {
-        document.getElementById('sidebar-user-name').innerText = user.username;
-        document.getElementById('sidebar-user-initial').innerText = user.username.charAt(0).toUpperCase();
-       }
-    });
+// ===============================
+// AUTH CHECK
+// ===============================
+const userData =
+localStorage.getItem(
+    'userData'
+);
 
-    function logoutUser() {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        window.location.href = 'login.html';
+if (!userData) {
+
+    window.location.href =
+    './index.html';
+
+}
+
+// ===============================
+// USER DATA
+// ===============================
+const user =
+JSON.parse(userData);
+
+// ===============================
+// DOM READY
+// ===============================
+document.addEventListener(
+'DOMContentLoaded',
+() => {
+
+    // ===========================
+    // LOAD USER INFO
+    // ===========================
+    if (
+        user &&
+        user.username
+    ) {
+
+        document.getElementById(
+            'sidebar-user-name'
+        ).innerText =
+        user.username;
+
+        document.getElementById(
+            'sidebar-user-initial'
+        ).innerText =
+        user.username
+            .charAt(0)
+            .toUpperCase();
+
     }
 
-    const transactionForm = document.getElementById('transaction-form');
+    // ===========================
+    // FORM SUBMIT
+    // ===========================
+    const transactionForm =
+    document.getElementById(
+        'transaction-form'
+    );
 
-    transactionForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    if (transactionForm) {
 
+        transactionForm.addEventListener(
+        'submit',
+        handleTransaction
+        );
+
+    }
+
+    // ===========================
+    // FILTER BUTTONS
+    // ===========================
+    initTransactionFilter();
+
+});
+
+// ===============================
+// LOGOUT
+// ===============================
+function logoutUser() {
+
+    localStorage.removeItem(
+        'userData'
+    );
+
+    window.location.href =
+    './index.html';
+
+}
+
+// ===============================
+// HANDLE TRANSACTION
+// ===============================
+async function handleTransaction(e) {
+
+    e.preventDefault();
+
+    const type =
+    document.getElementById(
+        'type-input'
+    ).value;
+
+    const asset =
+    document.getElementById(
+        'asset-input'
+    ).value
+    .trim()
+    .toUpperCase();
+
+    const price =
+    document.getElementById(
+        'price-input'
+    ).value;
+
+    const volume =
+    document.getElementById(
+        'volume-input'
+    ).value;
+
+    // ===========================
+    // VALIDATION
+    // ===========================
+    if (
+        !asset ||
+        !price ||
+        !volume
+    ) {
+
+        alert(
+            'Isi semua data transaksi'
+        );
+
+        return;
+
+    }
+
+    // ===========================
+    // BUTTON LOADING
+    // ===========================
+    const submitButton =
+    e.target.querySelector(
+        'button[type="submit"]'
+    );
+
+    submitButton.disabled =
+    true;
+
+    submitButton.innerHTML =
+    `
+    <i class="fa-solid fa-spinner fa-spin mr-2"></i>
+    Menyimpan...
+    `;
+
+    try {
+
+        // =======================
+        // DUMMY SAVE
+        // =======================
         const transactionData = {
-            type: document.getElementById('type-input').value,
-            asset: document.getElementById('asset-input').value,
-            price: document.getElementById('price-input').value,
-            volume: document.getElementById('volume-input').value
+
+            type,
+            asset,
+            price,
+            volume
+
         };
 
-        try {
-            const response = await fetch('http://localhost:5000/api/transactions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(transactionData)
+        console.log(
+            'Transaction Saved:',
+            transactionData
+        );
+
+        // =======================
+        // SUCCESS
+        // =======================
+        alert(
+            'Transaksi berhasil disimpan'
+        );
+
+        e.target.reset();
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert(
+            'Gagal menyimpan transaksi'
+        );
+
+    }
+
+    // ===========================
+    // RESET BUTTON
+    // ===========================
+    submitButton.disabled =
+    false;
+
+    submitButton.innerHTML =
+    'Simpan Log';
+
+}
+
+// ===============================
+// FILTER TRANSACTION TABLE
+// ===============================
+function initTransactionFilter() {
+
+    const filterButtons =
+    document.querySelectorAll(
+        '.border-slate-700, .border-slate-800'
+    );
+
+    const rows =
+    document.querySelectorAll(
+        '.portfolio-row'
+    );
+
+    filterButtons.forEach(button => {
+
+        button.addEventListener(
+        'click',
+        () => {
+
+            const text =
+            button.innerText
+                .toLowerCase();
+
+            // ===================
+            // RESET BUTTON STYLE
+            // ===================
+            filterButtons.forEach(btn => {
+
+                btn.classList.remove(
+                    'bg-indigo-500',
+                    'text-white'
+                );
+
+                btn.classList.add(
+                    'bg-slate-900/50',
+                    'text-slate-500'
+                );
+
             });
 
-            const data = await response.json();
-            alert(data.message);
-            console.log(data);
-        } catch (error) {
-            console.log(error);
-        }
+            // ===================
+            // ACTIVE BUTTON
+            // ===================
+            button.classList.remove(
+                'bg-slate-900/50',
+                'text-slate-500'
+            );
+
+            button.classList.add(
+                'bg-indigo-500',
+                'text-white'
+            );
+
+            // ===================
+            // SHOW ALL
+            // ===================
+            if (
+                text.includes('semua')
+            ) {
+
+                rows.forEach(row => {
+
+                    row.style.display =
+                    '';
+
+                });
+
+                return;
+
+            }
+
+            // ===================
+            // FILTER
+            // ===================
+            rows.forEach(row => {
+
+                const rowText =
+                row.innerText
+                    .toLowerCase();
+
+                if (
+                    rowText.includes(text)
+                ) {
+
+                    row.style.display =
+                    '';
+
+                } else {
+
+                    row.style.display =
+                    'none';
+
+                }
+
+            });
+
+        });
+
     });
+
+}
+
+// ===============================
+// AUTO UPPERCASE ASSET INPUT
+// ===============================
+const assetInput =
+document.getElementById(
+    'asset-input'
+);
+
+if (assetInput) {
+
+    assetInput.addEventListener(
+    'input',
+    () => {
+
+        assetInput.value =
+        assetInput.value
+            .toUpperCase();
+
+    });
+
+}
+
   </script>
 
 </body>
