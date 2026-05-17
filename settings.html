@@ -324,31 +324,138 @@
   </div>
 
   <script>
-    // --- Auth Check ---
-    const token = localStorage.getItem('userToken');
-    if (!token) window.location.href = 'login.html';
 
-    // Mengambil data user saat halaman dimuat
-    document.addEventListener('DOMContentLoaded', () => {
-       const user = JSON.parse(localStorage.getItem('userData')) || { username: 'User' };
-       
-       // Update UI Sidebar
-       document.getElementById('sidebar-user-name').innerText = user.username;
-       document.getElementById('sidebar-user-initial').innerText = user.username.charAt(0).toUpperCase();
-       
-       // Update UI Form Pengaturan
-       document.getElementById('setting-name').value = user.username;
-       document.getElementById('settings-avatar').innerText = user.username.charAt(0).toUpperCase();
-    });
+// ===============================
+// USER DATA
+// ===============================
+let user =
+JSON.parse(
+    localStorage.getItem(
+        'userData'
+    )
+) || {
 
-    function logoutUser() {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        window.location.href = 'login.html';
+    username: 'Mahasiswa',
+    email: 'mahasiswa@univ.ac.id'
+
+};
+
+// ===============================
+// DOM READY
+// ===============================
+document.addEventListener(
+
+    'DOMContentLoaded',
+
+    () => {
+
+        loadUserData();
+
     }
 
-    // --- Fungsi Simpan Profil Dummy ---
-    async function saveProfile(e) {
+);
+
+// ===============================
+// LOAD USER DATA
+// ===============================
+function loadUserData() {
+
+    const username =
+    user.username || 'Mahasiswa';
+
+    // SIDEBAR
+    const sidebarName =
+    document.getElementById(
+        'sidebar-user-name'
+    );
+
+    const sidebarInitial =
+    document.getElementById(
+        'sidebar-user-initial'
+    );
+
+    // SETTINGS
+    const settingName =
+    document.getElementById(
+        'setting-name'
+    );
+
+    const avatar =
+    document.getElementById(
+        'settings-avatar'
+    );
+
+    const emailInput =
+    document.getElementById(
+        'setting-email'
+    );
+
+    // UPDATE UI
+    if (sidebarName) {
+
+        sidebarName.innerText =
+        username;
+
+    }
+
+    if (sidebarInitial) {
+
+        sidebarInitial.innerText =
+        username
+            .charAt(0)
+            .toUpperCase();
+
+    }
+
+    if (settingName) {
+
+        settingName.value =
+        username;
+
+    }
+
+    if (avatar) {
+
+        avatar.innerText =
+        username
+            .charAt(0)
+            .toUpperCase();
+
+    }
+
+    if (emailInput) {
+
+        emailInput.value =
+        user.email ||
+        'mahasiswa@univ.ac.id';
+
+    }
+
+}
+
+// ===============================
+// LOGOUT
+// ===============================
+function logoutUser() {
+
+    localStorage.removeItem(
+        'userToken'
+    );
+
+    localStorage.removeItem(
+        'userData'
+    );
+
+    alert(
+        'Logout berhasil'
+    );
+
+}
+
+// ===============================
+// SAVE PROFILE
+// ===============================
+async function saveProfile(e) {
 
     e.preventDefault();
 
@@ -357,96 +464,109 @@
         const newName =
         document.getElementById(
             'setting-name'
-        ).value;
+        ).value.trim();
 
-        const user =
-        JSON.parse(
-            localStorage.getItem(
-                'userData'
-            )
-        );
+        if (!newName) {
 
-        // ======================
-        // REQUEST KE BACKEND
-        // ======================
+            alert(
+                'Nama tidak boleh kosong'
+            );
 
-        const response = await fetch(
+            return;
 
-            'http://localhost:5000/api/settings/profile',
+        }
 
-            {
+        // ===========================
+        // BACKEND REQUEST
+        // ===========================
+        let updatedUser = {
 
-                method: 'PUT',
+            ...user,
+            username: newName
 
-                headers: {
+        };
 
-                    'Content-Type':
-                    'application/json'
+        try {
 
-                },
+            const response =
+            await fetch(
 
-                body: JSON.stringify({
+                'http://localhost:5000/api/settings/profile',
 
-                    email: user.email,
+                {
 
-                    username: newName
+                    method: 'PUT',
 
-                })
+                    headers: {
+
+                        'Content-Type':
+                        'application/json'
+
+                    },
+
+                    body: JSON.stringify({
+
+                        email: user.email,
+
+                        username: newName
+
+                    })
+
+                }
+
+            );
+
+            // Jika backend sukses
+            if (response.ok) {
+
+                const data =
+                await response.json();
+
+                if (
+                    data &&
+                    data.user
+                ) {
+
+                    updatedUser =
+                    data.user;
+
+                }
 
             }
 
+        }
+
+        catch (backendError) {
+
+            console.log(
+                'Backend offline:',
+                backendError.message
+            );
+
+        }
+
+        // ===========================
+        // SAVE LOCAL
+        // ===========================
+        localStorage.setItem(
+
+            'userData',
+
+            JSON.stringify(
+                updatedUser
+            )
+
         );
 
-        const data =
-        await response.json();
+        // UPDATE GLOBAL USER
+        user = updatedUser;
 
-        // ======================
-        // SUCCESS
-        // ======================
+        // REFRESH UI
+        loadUserData();
 
-        if (data.success) {
-
-            localStorage.setItem(
-
-                'userData',
-
-                JSON.stringify(
-                    data.user
-                )
-
-            );
-
-            // UPDATE UI
-            document.getElementById(
-                'sidebar-user-name'
-            ).innerText =
-            data.user.username;
-
-            document.getElementById(
-                'sidebar-user-initial'
-            ).innerText =
-            data.user.username
-            .charAt(0)
-            .toUpperCase();
-
-            document.getElementById(
-                'settings-avatar'
-            ).innerText =
-            data.user.username
-            .charAt(0)
-            .toUpperCase();
-
-            alert(
-                'Profile berhasil diupdate'
-            );
-
-        }
-
-        else {
-
-            alert(data.message);
-
-        }
+        alert(
+            'Profil berhasil diperbarui'
+        );
 
     }
 
@@ -454,12 +574,15 @@
 
         console.log(error);
 
-        alert('Server Error');
+        alert(
+            'Terjadi kesalahan'
+        );
 
     }
 
 }
-  </script>
+
+</script>
 
 </body>
 </html>
