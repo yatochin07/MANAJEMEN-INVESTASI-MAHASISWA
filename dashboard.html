@@ -949,99 +949,233 @@ Logout
 
   <!-- ===== JAVASCRIPT ===== -->
   <script>
-    // --- Fee Optimizer Calculator ---
-    function calcFee() {
-      const budget = parseFloat(document.getElementById('budget-input').value) || 0;
-      const instrument = document.getElementById('instrument-select').value;
 
-      const feeRates = { saham: 0.0019, kripto: 0.001, emas: 0.005 };
-      const lotValues = { saham: 100, kripto: 1, emas: 0.5 };
-      const lotUnits  = { saham: 'lot (setara 100 lembar)', kripto: 'koin/unit', emas: 'gram' };
-      const assetPrices = { saham: 5000, kripto: 500000, emas: 1170000 };
+// ===============================
+// AUTH CHECK
+// ===============================
+const userData =
+localStorage.getItem('userData');
 
-      const rate    = feeRates[instrument];
-      const fee     = budget * rate;
-      const netBudget = budget - fee;
-      const maxUnit = Math.floor(netBudget / assetPrices[instrument] / lotValues[instrument]);
-      const unitLabel = lotUnits[instrument];
+if (!userData) {
 
-      const resultEl = document.getElementById('fee-result');
-      const textEl   = document.getElementById('fee-text');
-
-      resultEl.classList.remove('hidden');
-      textEl.innerHTML = `
-        <span class="text-cyan-400 font-semibold">Estimasi Fee:</span>
-        <span class="text-slate-300"> Rp ${fee.toLocaleString('id-ID', {maximumFractionDigits:0})}</span>
-        &nbsp;·&nbsp;
-        <span class="text-cyan-400 font-semibold">Net Budget:</span>
-        <span class="text-slate-300"> Rp ${netBudget.toLocaleString('id-ID', {maximumFractionDigits:0})}</span>
-        <br/>
-        <span class="text-emerald-400 font-semibold">Maks. Beli:</span>
-        <span class="text-slate-200 font-medium"> ~${maxUnit > 0 ? maxUnit : '<1'} ${unitLabel}</span>
-      `;
-    }
-
-    // --- Animate progress bars and alloc bars on load ---
-    document.addEventListener('DOMContentLoaded', () => {
-      // Stagger alloc bars
-      document.querySelectorAll('.alloc-bar').forEach((bar, i) => {
-        const target = bar.style.width;
-        bar.style.width = '0';
-        setTimeout(() => { bar.style.width = target; }, 300 + i * 80);
-      });
-      // Stagger progress fills
-      document.querySelectorAll('.progress-fill').forEach((bar, i) => {
-        const target = bar.style.width;
-        bar.style.width = '0';
-        setTimeout(() => { bar.style.width = target; }, 500 + i * 120);
-      });
-    });
-  </script>
-
-  <script>
-
-const token = localStorage.getItem('userToken');
-
-if (!token) {
-
-    window.location.href = 'index.html';
+    window.location.href =
+    './index.html';
 
 }
 
-const user = JSON.parse(
-    localStorage.getItem('userData')
-);
+// ===============================
+// LOAD USER
+// ===============================
+const user =
+JSON.parse(userData);
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener(
+'DOMContentLoaded',
+() => {
 
-   if (user) {
+    // ===========================
+    // USER INFO
+    // ===========================
+    if (user) {
 
-    document.getElementById('welcome-user')
-        .innerText =
+        document.getElementById(
+            'welcome-user'
+        ).innerText =
         `Selamat Datang, ${user.username} 👋`;
 
-    document.getElementById('sidebar-user-name')
-        .innerText = user.username;
+        document.getElementById(
+            'sidebar-user-name'
+        ).innerText =
+        user.username;
 
-    document.getElementById('sidebar-user-initial')
-        .innerText =
-        user.username.charAt(0).toUpperCase();
+        document.getElementById(
+            'sidebar-user-initial'
+        ).innerText =
+        user.username
+            .charAt(0)
+            .toUpperCase();
 
-}
+    }
+
+    // ===========================
+    // ANIMATE ALLOC BARS
+    // ===========================
+    document
+    .querySelectorAll('.alloc-bar')
+    .forEach((bar, i) => {
+
+        const target =
+        bar.style.width;
+
+        bar.style.width = '0';
+
+        setTimeout(() => {
+
+            bar.style.width =
+            target;
+
+        }, 300 + i * 80);
+
+    });
+
+    // ===========================
+    // ANIMATE PROGRESS BARS
+    // ===========================
+    document
+    .querySelectorAll('.progress-fill')
+    .forEach((bar, i) => {
+
+        const target =
+        bar.style.width;
+
+        bar.style.width = '0';
+
+        setTimeout(() => {
+
+            bar.style.width =
+            target;
+
+        }, 500 + i * 120);
+
+    });
 
 });
 
+// ===============================
+// LOGOUT
+// ===============================
 function logoutUser() {
 
-    localStorage.removeItem('userToken');
+    localStorage.removeItem(
+        'userData'
+    );
 
-    localStorage.removeItem('userData');
+    window.location.href =
+    './index.html';
 
-    window.location.href = 'index.html';
+}
+
+// ===============================
+// FEE OPTIMIZER CALCULATOR
+// ===============================
+function calcFee() {
+
+    const budget =
+    parseFloat(
+        document.getElementById(
+            'budget-input'
+        ).value
+    ) || 0;
+
+    const instrument =
+    document.getElementById(
+        'instrument-select'
+    ).value;
+
+    const feeRates = {
+
+        saham: 0.0019,
+        kripto: 0.001,
+        emas: 0.005
+
+    };
+
+    const lotValues = {
+
+        saham: 100,
+        kripto: 1,
+        emas: 0.5
+
+    };
+
+    const lotUnits = {
+
+        saham: 'lot (100 lembar)',
+        kripto: 'koin/unit',
+        emas: 'gram'
+
+    };
+
+    const assetPrices = {
+
+        saham: 5000,
+        kripto: 500000,
+        emas: 1170000
+
+    };
+
+    const rate =
+    feeRates[instrument];
+
+    const fee =
+    budget * rate;
+
+    const netBudget =
+    budget - fee;
+
+    const maxUnit =
+    Math.floor(
+        netBudget /
+        assetPrices[instrument] /
+        lotValues[instrument]
+    );
+
+    const unitLabel =
+    lotUnits[instrument];
+
+    const resultEl =
+    document.getElementById(
+        'fee-result'
+    );
+
+    const textEl =
+    document.getElementById(
+        'fee-text'
+    );
+
+    resultEl.classList.remove(
+        'hidden'
+    );
+
+    textEl.innerHTML = `
+
+        <span class="text-cyan-400 font-semibold">
+        Estimasi Fee:
+        </span>
+
+        <span class="text-slate-300">
+        Rp ${fee.toLocaleString('id-ID',{
+            maximumFractionDigits:0
+        })}
+        </span>
+
+        &nbsp;·&nbsp;
+
+        <span class="text-cyan-400 font-semibold">
+        Net Budget:
+        </span>
+
+        <span class="text-slate-300">
+        Rp ${netBudget.toLocaleString('id-ID',{
+            maximumFractionDigits:0
+        })}
+        </span>
+
+        <br/>
+
+        <span class="text-emerald-400 font-semibold">
+        Maks. Beli:
+        </span>
+
+        <span class="text-slate-200 font-medium">
+        ~${maxUnit > 0 ? maxUnit : '<1'}
+        ${unitLabel}
+        </span>
+
+    `;
 
 }
 
 </script>
-
 </body>
 </html>
