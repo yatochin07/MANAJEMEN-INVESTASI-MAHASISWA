@@ -939,15 +939,15 @@ async function handleLogin() {
   loginButton.innerHTML =
   '<span class="spinner"></span>Memproses...';
 
-  const { data, error } =
-  await supabaseClient
-    .from('users')
-    .select('*')
-    .or(
-      `email.eq.${loginInput},username.eq.${loginInput}`
-    )
-    .eq('password', passwordInput)
-    .single();
+ const { data, error } =
+await supabaseClient
+  .from('users')
+  .select('*')
+  .or(
+    username.eq.${loginInput},email.eq.${loginInput}
+  )
+  .eq('password', passwordInput)
+  .maybeSingle();
 
   loginButton.disabled = false;
 
