@@ -909,7 +909,7 @@ function checkStrength(val) {
 // =====================
 async function handleLogin() {
 
-  const emailInput =
+  const loginInput =
   document.getElementById(
     'login-email'
   ).value.trim();
@@ -919,16 +919,20 @@ async function handleLogin() {
     'login-password'
   ).value.trim();
 
-  if (!emailInput || !passwordInput) {
+  if (!loginInput || !passwordInput) {
 
-    alert('Isi email dan password');
+    alert(
+      'Isi username/email dan password'
+    );
 
     return;
 
   }
 
   const loginButton =
-  document.getElementById('btn-login');
+  document.getElementById(
+    'btn-login'
+  );
 
   loginButton.disabled = true;
 
@@ -939,7 +943,9 @@ async function handleLogin() {
   await supabaseClient
     .from('users')
     .select('*')
-    .eq('email', emailInput)
+    .or(
+      `email.eq.${loginInput},username.eq.${loginInput}`
+    )
     .eq('password', passwordInput)
     .single();
 
@@ -950,7 +956,9 @@ async function handleLogin() {
 
   if (error || !data) {
 
-    alert('Email atau password salah');
+    alert(
+      'Username/email atau password salah'
+    );
 
     return;
 
@@ -1017,16 +1025,42 @@ async function handleRegister() {
 
   }
 
-  const { data: existingUser } =
+  const username =
+  nameInput
+    .toLowerCase()
+    .replace(/\s/g, '');
+
+  // cek email
+  const { data: existingEmail } =
   await supabaseClient
     .from('users')
     .select('email')
     .eq('email', emailInput)
     .maybeSingle();
 
-  if (existingUser) {
+  if (existingEmail) {
 
-    alert('Email sudah terdaftar');
+    alert(
+      'Email sudah terdaftar'
+    );
+
+    return;
+
+  }
+
+  // cek username
+  const { data: existingUsername } =
+  await supabaseClient
+    .from('users')
+    .select('username')
+    .eq('username', username)
+    .maybeSingle();
+
+  if (existingUsername) {
+
+    alert(
+      'Username sudah dipakai'
+    );
 
     return;
 
@@ -1038,6 +1072,7 @@ async function handleRegister() {
     .insert([
       {
         name: nameInput,
+        username: username,
         email: emailInput,
         university: uniInput,
         password: passwordInput
@@ -1055,7 +1090,10 @@ async function handleRegister() {
 
   }
 
-  alert('Register berhasil');
+  alert(
+    'Register berhasil\n\nUsername kamu: ' +
+    username
+  );
 
   switchTab('login');
 
