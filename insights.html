@@ -324,124 +324,486 @@
   </div>
 
   <script>
-    // --- Auth Check ---
-    const token = localStorage.getItem('userToken');
-    if (!token) window.location.href = 'login.html';
 
-    const user = JSON.parse(localStorage.getItem('userData'));
-    document.addEventListener('DOMContentLoaded', () => {
-       if (user && user.username) {
-        document.getElementById('sidebar-user-name').innerText = user.username;
-        document.getElementById('sidebar-user-initial').innerText = user.username.charAt(0).toUpperCase();
-        document.getElementById('chat-user-name').innerText = user.username;
-       }
+// ===============================
+// USER DATA
+// ===============================
+const user =
+JSON.parse(
+    localStorage.getItem(
+        'userData'
+    )
+);
+
+// ===============================
+// DOM READY
+// ===============================
+document.addEventListener(
+'DOMContentLoaded',
+() => {
+
+    loadUserData();
+    animateProgressBars();
+
+});
+
+// ===============================
+// LOAD USER INFO
+// ===============================
+function loadUserData() {
+
+    const sidebarName =
+    document.getElementById(
+        'sidebar-user-name'
+    );
+
+    const sidebarInitial =
+    document.getElementById(
+        'sidebar-user-initial'
+    );
+
+    const chatUserName =
+    document.getElementById(
+        'chat-user-name'
+    );
+
+    const username =
+    user?.username || 'Mahasiswa';
+
+    if (sidebarName) {
+
+        sidebarName.innerText =
+        username;
+
+    }
+
+    if (sidebarInitial) {
+
+        sidebarInitial.innerText =
+        username
+            .charAt(0)
+            .toUpperCase();
+
+    }
+
+    if (chatUserName) {
+
+        chatUserName.innerText =
+        username;
+
+    }
+
+}
+
+// ===============================
+// ANIMATE PROGRESS BARS
+// ===============================
+function animateProgressBars() {
+
+    const bars =
+    document.querySelectorAll(
+        '.progress-fill'
+    );
+
+    bars.forEach(
+    (bar, index) => {
+
+        const targetWidth =
+        bar.style.width;
+
+        bar.style.width =
+        '0%';
+
+        setTimeout(() => {
+
+            bar.style.width =
+            targetWidth;
+
+        }, 250 + (index * 120));
+
     });
 
-    function logoutUser() {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        window.location.href = 'login.html';
-    }
+}
 
-    // --- AI Chat Logic (Simulation) ---
-    const chatBox = document.getElementById('chat-box');
-    const chatInput = document.getElementById('chat-input');
-    const suggestedPrompts = document.getElementById('suggested-prompts');
+// ===============================
+// LOGOUT
+// ===============================
+function logoutUser() {
 
-    function appendUserMessage(text) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'flex gap-3 max-w-[85%] self-end flex-row-reverse';
-      msgDiv.innerHTML = `
+    localStorage.removeItem(
+        'userToken'
+    );
+
+    localStorage.removeItem(
+        'userData'
+    );
+
+    alert(
+        'Logout berhasil'
+    );
+
+}
+
+// ===============================
+// CHAT ELEMENTS
+// ===============================
+const chatBox =
+document.getElementById(
+    'chat-box'
+);
+
+const chatInput =
+document.getElementById(
+    'chat-input'
+);
+
+const suggestedPrompts =
+document.getElementById(
+    'suggested-prompts'
+);
+
+// ===============================
+// SAFE AUTO SCROLL
+// ===============================
+function scrollChatToBottom() {
+
+    if (!chatBox) return;
+
+    chatBox.scrollTop =
+    chatBox.scrollHeight;
+
+}
+
+// ===============================
+// APPEND USER MESSAGE
+// ===============================
+function appendUserMessage(
+    text
+) {
+
+    if (!chatBox) return;
+
+    const msgDiv =
+    document.createElement(
+        'div'
+    );
+
+    msgDiv.className =
+    'flex gap-3 max-w-[85%] self-end flex-row-reverse';
+
+    msgDiv.innerHTML = `
         <div class="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-          <i class="fa-solid fa-user text-indigo-400 text-[10px]"></i>
+            <i class="fa-solid fa-user text-indigo-400 text-[10px]"></i>
         </div>
+
         <div class="chat-bubble-user rounded-2xl p-3 text-slate-200 leading-relaxed shadow-sm">
-          ${text}
+            ${escapeHTML(text)}
         </div>
-      `;
-      chatBox.appendChild(msgDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
+    `;
 
-    function appendAITyping() {
-      const msgDiv = document.createElement('div');
-      msgDiv.id = 'ai-typing';
-      msgDiv.className = 'flex gap-3 max-w-[85%]';
-      msgDiv.innerHTML = `
+    chatBox.appendChild(
+        msgDiv
+    );
+
+    scrollChatToBottom();
+
+}
+
+// ===============================
+// AI TYPING
+// ===============================
+function appendAITyping() {
+
+    if (!chatBox) return;
+
+    const msgDiv =
+    document.createElement(
+        'div'
+    );
+
+    msgDiv.id =
+    'ai-typing';
+
+    msgDiv.className =
+    'flex gap-3 max-w-[85%]';
+
+    msgDiv.innerHTML = `
         <div class="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-          <i class="fa-solid fa-robot text-violet-400 text-[10px]"></i>
+            <i class="fa-solid fa-robot text-violet-400 text-[10px]"></i>
         </div>
+
         <div class="chat-bubble-ai rounded-2xl px-4 py-3 shadow-sm flex items-center gap-1">
-          <div class="w-1.5 h-1.5 bg-violet-400 rounded-full typing-dot"></div>
-          <div class="w-1.5 h-1.5 bg-violet-400 rounded-full typing-dot"></div>
-          <div class="w-1.5 h-1.5 bg-violet-400 rounded-full typing-dot"></div>
+            <div class="w-1.5 h-1.5 bg-violet-400 rounded-full typing-dot"></div>
+            <div class="w-1.5 h-1.5 bg-violet-400 rounded-full typing-dot"></div>
+            <div class="w-1.5 h-1.5 bg-violet-400 rounded-full typing-dot"></div>
         </div>
-      `;
-      chatBox.appendChild(msgDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
-      return msgDiv;
+    `;
+
+    chatBox.appendChild(
+        msgDiv
+    );
+
+    scrollChatToBottom();
+
+}
+
+// ===============================
+// APPEND AI RESPONSE
+// ===============================
+function appendAIResponse(
+    text
+) {
+
+    const typingEl =
+    document.getElementById(
+        'ai-typing'
+    );
+
+    if (typingEl) {
+
+        typingEl.remove();
+
     }
 
-    function appendAIResponse(text) {
-      const typingEl = document.getElementById('ai-typing');
-      if (typingEl) typingEl.remove();
+    const msgDiv =
+    document.createElement(
+        'div'
+    );
 
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'flex gap-3 max-w-[85%]';
-      msgDiv.innerHTML = `
+    msgDiv.className =
+    'flex gap-3 max-w-[85%]';
+
+    msgDiv.innerHTML = `
         <div class="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0 mt-1">
-          <i class="fa-solid fa-robot text-violet-400 text-[10px]"></i>
+            <i class="fa-solid fa-robot text-violet-400 text-[10px]"></i>
         </div>
+
         <div class="chat-bubble-ai rounded-2xl p-3 text-slate-300 leading-relaxed shadow-sm">
-          ${text}
+            ${text}
         </div>
-      `;
-      chatBox.appendChild(msgDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    `;
+
+    chatBox.appendChild(
+        msgDiv
+    );
+
+    scrollChatToBottom();
+
+}
+
+// ===============================
+// ESCAPE HTML
+// ===============================
+function escapeHTML(
+    str
+) {
+
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+}
+
+// ===============================
+// AI RESPONSE SIMULATION
+// ===============================
+function simulateAIResponse(
+    userText
+) {
+
+    appendAITyping();
+
+    if (suggestedPrompts) {
+
+        suggestedPrompts.style.display =
+        'none';
+
     }
 
-    function simulateAIResponse(userText) {
-      const typingEl = appendAITyping();
-      
-      // Sembunyikan suggested prompts jika user sudah mulai nge-chat
-      suggestedPrompts.style.display = 'none';
+    setTimeout(() => {
 
-      // Simulasi delay request ke backend (1.5 detik)
-      setTimeout(() => {
-        let response = "";
-        const lowerText = userText.toLowerCase();
+        let response = '';
 
-        if (lowerText.includes("margin") || lowerText.includes("aman")) {
-          response = "Saat ini penggunaan margin Anda mencapai **82%**, yang tergolong berisiko tinggi (*High Risk*) untuk pelajar. Mengingat IHSG sedang fluktuatif, saya sarankan menurunkan porsi margin ke batas aman (maksimal 30%) dengan merealisasikan sebagian aset saham perbankan Anda.";
-        } else if (lowerText.includes("kripto") || lowerText.includes("rebalancing")) {
-          response = "Porsi Kripto Anda (BTC & ETH) saat ini menyumbang **25%** dari portofolio. Meskipun menguntungkan (+14%), volatilitas harian kripto sangat tinggi. Memindahkan 10% keuntungan ke instrumen rendah risiko seperti Reksa Dana Pasar Uang akan mempercepat pencapaian target 'Dana Darurat' Anda.";
-        } else {
-          response = "Berdasarkan pemantauan AI, portofolio Anda tumbuh +18.4% secara keseluruhan. Namun, harap perhatikan konsentrasi aset pada sektor Keuangan (BBCA) yang terlalu mendominasi. Apakah Anda ingin saya buatkan simulasi pembelian sektor Konsumer/Teknologi?";
+        const lowerText =
+        userText.toLowerCase();
+
+        // =======================
+        // RESPONSE LOGIC
+        // =======================
+        if (
+            lowerText.includes('margin') ||
+            lowerText.includes('aman')
+        ) {
+
+            response =
+            `
+            Saat ini penggunaan 
+            <strong class="text-white">
+            margin
+            </strong>
+            Anda mencapai 
+            <strong class="text-rose-400">
+            82%
+            </strong>.
+
+            Risiko 
+            <em class="text-violet-300">
+            margin call
+            </em>
+            cukup tinggi apabila pasar terkoreksi tajam.
+
+            AI menyarankan:
+
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-xs">
+                <li>Kurangi posisi leverage</li>
+                <li>Realisasikan sebagian profit BBCA</li>
+                <li>Turunkan margin ke bawah 30%</li>
+            </ul>
+            `;
+
         }
 
-        // Parse basic markdown-like bolding for UI
-        response = response.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>');
-        response = response.replace(/\*(.*?)\*/g, '<em class="text-violet-300">$1</em>');
+        else if (
+            lowerText.includes('kripto') ||
+            lowerText.includes('btc') ||
+            lowerText.includes('rebalancing')
+        ) {
 
-        appendAIResponse(response);
-      }, 1500);
-    }
+            response =
+            `
+            Porsi aset kripto Anda saat ini sekitar
+            <strong class="text-amber-400">
+            25%
+            </strong>
+            dari total portofolio.
 
-    function handleChatSubmit(e) {
-      e.preventDefault();
-      const text = chatInput.value.trim();
-      if (!text) return;
-      
-      appendUserMessage(text);
-      chatInput.value = '';
-      simulateAIResponse(text);
-    }
+            Profit BTC sudah mencapai
+            <strong class="text-emerald-400">
+            +14.13%
+            </strong>.
 
-    function sendPredefinedPrompt(text) {
-      appendUserMessage(text);
-      simulateAIResponse(text);
-    }
+            Strategi AI:
 
-  </script>
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-xs">
+                <li>Take profit 10% — 30%</li>
+                <li>Pindahkan sebagian profit ke Reksa Dana</li>
+                <li>Tingkatkan dana darurat untuk stabilitas</li>
+            </ul>
+            `;
+
+        }
+
+        else if (
+            lowerText.includes('diversifikasi')
+        ) {
+
+            response =
+            `
+            Portofolio Anda masih terlalu terkonsentrasi di sektor:
+
+            <strong class="text-rose-400">
+            Perbankan & Keuangan
+            </strong>.
+
+            AI menyarankan diversifikasi tambahan ke:
+
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-xs">
+                <li>Sektor Konsumer</li>
+                <li>Teknologi</li>
+                <li>Healthcare</li>
+                <li>Reksa Dana Pasar Uang</li>
+            </ul>
+            `;
+
+        }
+
+        else {
+
+            response =
+            `
+            Berdasarkan analisis terbaru, performa portofolio Anda cukup baik dengan estimasi pertumbuhan:
+
+            <strong class="text-emerald-400">
+            +18.4%
+            </strong>
+
+            Namun AI mendeteksi:
+
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-xs">
+                <li>Risiko margin cukup tinggi</li>
+                <li>Konsentrasi aset belum seimbang</li>
+                <li>Porsi kripto cukup agresif</li>
+            </ul>
+
+            Saya dapat membantu simulasi:
+            <br>
+            • Rebalancing
+            <br>
+            • Diversifikasi
+            <br>
+            • Target dana
+            <br>
+            • Simulasi take profit
+            `;
+        }
+
+        appendAIResponse(
+            response
+        );
+
+    }, 1500);
+
+}
+
+// ===============================
+// CHAT SUBMIT
+// ===============================
+function handleChatSubmit(
+    e
+) {
+
+    e.preventDefault();
+
+    if (!chatInput) return;
+
+    const text =
+    chatInput.value.trim();
+
+    if (!text) return;
+
+    appendUserMessage(
+        text
+    );
+
+    chatInput.value =
+    '';
+
+    simulateAIResponse(
+        text
+    );
+
+}
+
+// ===============================
+// PREDEFINED PROMPT
+// ===============================
+function sendPredefinedPrompt(
+    text
+) {
+
+    appendUserMessage(
+        text
+    );
+
+    simulateAIResponse(
+        text
+    );
+
+}
+
+</script>
 </body>
 </html>
