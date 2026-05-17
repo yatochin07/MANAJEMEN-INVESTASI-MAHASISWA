@@ -414,24 +414,9 @@
 
   <script>
 
-// ========================================
-// AUTH CHECK
-// ========================================
-const token =
-localStorage.getItem(
-    'userToken'
-);
-
-if (!token) {
-
-    window.location.href =
-    'login.html';
-
-}
-
-// ========================================
+// ===============================
 // USER DATA
-// ========================================
+// ===============================
 const user =
 JSON.parse(
     localStorage.getItem(
@@ -439,132 +424,116 @@ JSON.parse(
     )
 );
 
-// ========================================
-// DOM READY
-// ========================================
+// ===============================
+// DOM LOADED
+// ===============================
 document.addEventListener(
 'DOMContentLoaded',
 () => {
 
-    loadUserProfile();
-
-    animateProgressBars();
-
-    initializeGoalCards();
-
-    initializeGoalForm();
-
-});
-
-// ========================================
-// LOAD USER PROFILE
-// ========================================
-function loadUserProfile() {
-
+    // ===========================
+    // LOAD USER INFO
+    // ===========================
     if (
         user &&
         user.username
     ) {
 
+        const userName =
         document.getElementById(
             'sidebar-user-name'
-        ).innerText =
-        user.username;
+        );
 
+        const userInitial =
         document.getElementById(
             'sidebar-user-initial'
-        ).innerText =
-        user.username
-            .charAt(0)
-            .toUpperCase();
+        );
+
+        if (userName) {
+
+            userName.innerText =
+            user.username;
+
+        }
+
+        if (userInitial) {
+
+            userInitial.innerText =
+            user.username
+                .charAt(0)
+                .toUpperCase();
+
+        }
 
     }
 
-}
+    animateProgressBars();
+    setupGoalForm();
 
-// ========================================
-// ANIMATE PROGRESS BAR
-// ========================================
+});
+
+// ===============================
+// PROGRESS BAR ANIMATION
+// ===============================
 function animateProgressBars() {
 
-    setTimeout(() => {
-
-        const bars =
-        document.querySelectorAll(
-            '.progress-fill'
-        );
-
-        bars.forEach((bar, index) => {
-
-            const finalWidth =
-            bar.style.width;
-
-            bar.style.width =
-            '0%';
-
-            setTimeout(() => {
-
-                bar.style.width =
-                finalWidth;
-
-            }, index * 180);
-
-        });
-
-    }, 300);
-
-}
-
-// ========================================
-// GOAL CARD HOVER EFFECT
-// ========================================
-function initializeGoalCards() {
-
-    const cards =
+    const bars =
     document.querySelectorAll(
-        '.goal-card'
+        '.progress-fill'
     );
 
-    cards.forEach(card => {
+    bars.forEach(
+    (bar, index) => {
 
-        card.addEventListener(
-        'mouseenter',
-        () => {
+        const targetWidth =
+        bar.style.width;
 
-            card.style.transform =
-            'translateY(-4px)';
+        bar.style.width =
+        '0%';
 
-        });
+        setTimeout(() => {
 
-        card.addEventListener(
-        'mouseleave',
-        () => {
+            bar.style.width =
+            targetWidth;
 
-            card.style.transform =
-            'translateY(0px)';
-
-        });
+        }, 300 + (index * 120));
 
     });
 
 }
 
-// ========================================
+// ===============================
+// LOGOUT
+// ===============================
+function logoutUser() {
+
+    localStorage.removeItem(
+        'userToken'
+    );
+
+    localStorage.removeItem(
+        'userData'
+    );
+
+    alert('Logout berhasil');
+
+}
+
+// ===============================
 // FORMAT RUPIAH
-// ========================================
+// ===============================
 function formatRupiah(number) {
 
-    return new Intl
-    .NumberFormat(
+    return new Intl.NumberFormat(
         'id-ID'
     ).format(number);
 
 }
 
-// ========================================
-// CALCULATE MONTH DIFFERENCE
-// ========================================
-function calculateMonthDifference(
+// ===============================
+// MONTH DIFFERENCE
+// ===============================
+function getMonthDifference(
     deadline
 ) {
 
@@ -574,26 +543,24 @@ function calculateMonthDifference(
     const targetDate =
     new Date(deadline);
 
-    const diffMonth =
+    const months =
     (
-        targetDate.getFullYear() -
-        today.getFullYear()
-    ) * 12 +
+        (targetDate.getFullYear() - today.getFullYear()) * 12
+    ) +
     (
-        targetDate.getMonth() -
-        today.getMonth()
+        targetDate.getMonth() - today.getMonth()
     );
 
-    return diffMonth <= 0
-    ? 1
-    : diffMonth;
+    return months <= 0
+        ? 1
+        : months;
 
 }
 
-// ========================================
+// ===============================
 // GOAL FORM
-// ========================================
-function initializeGoalForm() {
+// ===============================
+function setupGoalForm() {
 
     const goalForm =
     document.getElementById(
@@ -608,92 +575,59 @@ function initializeGoalForm() {
 
         e.preventDefault();
 
-        const submitButton =
-        goalForm.querySelector(
-            'button[type="submit"]'
-        );
-
-        submitButton.disabled =
-        true;
-
-        submitButton.innerHTML =
-        `
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        Menyimpan...
-        `;
-
-        const goalName =
+        const name =
         document.getElementById(
             'goal-name'
         ).value.trim();
 
-        const goalIcon =
+        const icon =
         document.getElementById(
             'goal-icon'
         ).value;
 
-        const goalTarget =
-        Number(
+        const target =
+        parseInt(
             document.getElementById(
                 'goal-target'
             ).value
         );
 
-        const goalDeadline =
+        const deadline =
         document.getElementById(
             'goal-deadline'
         ).value;
 
-        // ============================
-        // VALIDATION
-        // ============================
         if (
-            !goalName ||
-            !goalTarget ||
-            !goalDeadline
+            !name ||
+            !icon ||
+            !target ||
+            !deadline
         ) {
 
             alert(
                 'Semua field wajib diisi.'
             );
 
-            resetSubmitButton(
-                submitButton
-            );
-
             return;
 
         }
 
-        // ============================
-        // MONTHLY ESTIMATION
-        // ============================
-        const totalMonth =
-        calculateMonthDifference(
-            goalDeadline
+        const totalMonths =
+        getMonthDifference(
+            deadline
         );
 
         const monthlySaving =
         Math.ceil(
-            goalTarget /
-            totalMonth
+            target / totalMonths
         );
 
         const goalData = {
 
-            name:
-            goalName,
-
-            icon:
-            goalIcon,
-
-            target:
-            goalTarget,
-
-            deadline:
-            goalDeadline,
-
-            monthlySaving:
+            name,
+            icon,
+            target,
+            deadline,
             monthlySaving
 
         };
@@ -711,7 +645,8 @@ function initializeGoalForm() {
                         'application/json'
                     },
 
-                    body: JSON.stringify(
+                    body:
+                    JSON.stringify(
                         goalData
                     )
                 }
@@ -720,26 +655,11 @@ function initializeGoalForm() {
             const data =
             await response.json();
 
-            if (!response.ok) {
-
-                throw new Error(
-                    data.message ||
-                    'Gagal membuat target'
-                );
-
-            }
-
             alert(
-`🎯 Target berhasil dibuat!
+`Target berhasil dibuat!
 
-Nama:
-${goalName}
-
-Target:
-Rp ${formatRupiah(goalTarget)}
-
-Estimasi tabungan:
-Rp ${formatRupiah(monthlySaving)} / bulan`
+Tabungan per bulan:
+Rp ${formatRupiah(monthlySaving)}`
             );
 
             console.log(data);
@@ -751,14 +671,7 @@ Rp ${formatRupiah(monthlySaving)} / bulan`
             console.error(error);
 
             alert(
-                error.message ||
-                'Terjadi kesalahan server'
-            );
-
-        } finally {
-
-            resetSubmitButton(
-                submitButton
+                'Gagal terhubung ke server backend.'
             );
 
         }
@@ -766,75 +679,6 @@ Rp ${formatRupiah(monthlySaving)} / bulan`
     });
 
 }
-
-// ========================================
-// RESET BUTTON
-// ========================================
-function resetSubmitButton(
-    button
-) {
-
-    button.disabled =
-    false;
-
-    button.innerHTML =
-    `
-    Buat Target & Kalkulasi Kalkulator AI
-    `;
-
-}
-
-// ========================================
-// LOGOUT
-// ========================================
-function logoutUser() {
-
-    localStorage.removeItem(
-        'userToken'
-    );
-
-    localStorage.removeItem(
-        'userData'
-    );
-
-    window.location.href =
-    'login.html';
-
-}
-
-// ========================================
-// RESPONSIVE FIX
-// ========================================
-window.addEventListener(
-'resize',
-() => {
-
-    const main =
-    document.querySelector(
-        'main'
-    );
-
-    if (
-        window.innerWidth <= 767
-    ) {
-
-        main.style.maxWidth =
-        '100%';
-
-        main.style.marginLeft =
-        '0';
-
-    } else {
-
-        main.style.maxWidth =
-        'calc(100% - 16rem)';
-
-        main.style.marginLeft =
-        '16rem';
-
-    }
-
-});
 
 </script>
 
