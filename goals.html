@@ -414,9 +414,9 @@
 
   <script>
 
-// ===============================
+// ========================================
 // AUTH CHECK
-// ===============================
+// ========================================
 const token =
 localStorage.getItem(
     'userToken'
@@ -429,9 +429,9 @@ if (!token) {
 
 }
 
-// ===============================
+// ========================================
 // USER DATA
-// ===============================
+// ========================================
 const user =
 JSON.parse(
     localStorage.getItem(
@@ -439,16 +439,28 @@ JSON.parse(
     )
 );
 
-// ===============================
+// ========================================
 // DOM READY
-// ===============================
+// ========================================
 document.addEventListener(
 'DOMContentLoaded',
 () => {
 
-    // ===========================
-    // LOAD USER INFO
-    // ===========================
+    loadUserProfile();
+
+    animateProgressBars();
+
+    initializeGoalCards();
+
+    initializeGoalForm();
+
+});
+
+// ========================================
+// LOAD USER PROFILE
+// ========================================
+function loadUserProfile() {
+
     if (
         user &&
         user.username
@@ -468,32 +480,23 @@ document.addEventListener(
 
     }
 
-    // ===========================
-    // ANIMATE PROGRESS BAR
-    // ===========================
-    animateProgressBars();
+}
 
-    // ===========================
-    // LOAD GOALS
-    // ===========================
-    loadGoals();
-
-});
-
-// ===============================
+// ========================================
 // ANIMATE PROGRESS BAR
-// ===============================
+// ========================================
 function animateProgressBars() {
 
     setTimeout(() => {
 
-        document
-        .querySelectorAll(
+        const bars =
+        document.querySelectorAll(
             '.progress-fill'
-        )
-        .forEach(bar => {
+        );
 
-            const width =
+        bars.forEach((bar, index) => {
+
+            const finalWidth =
             bar.style.width;
 
             bar.style.width =
@@ -502,9 +505,9 @@ function animateProgressBars() {
             setTimeout(() => {
 
                 bar.style.width =
-                width;
+                finalWidth;
 
-            }, 100);
+            }, index * 180);
 
         });
 
@@ -512,9 +515,278 @@ function animateProgressBars() {
 
 }
 
-// ===============================
+// ========================================
+// GOAL CARD HOVER EFFECT
+// ========================================
+function initializeGoalCards() {
+
+    const cards =
+    document.querySelectorAll(
+        '.goal-card'
+    );
+
+    cards.forEach(card => {
+
+        card.addEventListener(
+        'mouseenter',
+        () => {
+
+            card.style.transform =
+            'translateY(-4px)';
+
+        });
+
+        card.addEventListener(
+        'mouseleave',
+        () => {
+
+            card.style.transform =
+            'translateY(0px)';
+
+        });
+
+    });
+
+}
+
+// ========================================
+// FORMAT RUPIAH
+// ========================================
+function formatRupiah(number) {
+
+    return new Intl
+    .NumberFormat(
+        'id-ID'
+    ).format(number);
+
+}
+
+// ========================================
+// CALCULATE MONTH DIFFERENCE
+// ========================================
+function calculateMonthDifference(
+    deadline
+) {
+
+    const today =
+    new Date();
+
+    const targetDate =
+    new Date(deadline);
+
+    const diffMonth =
+    (
+        targetDate.getFullYear() -
+        today.getFullYear()
+    ) * 12 +
+    (
+        targetDate.getMonth() -
+        today.getMonth()
+    );
+
+    return diffMonth <= 0
+    ? 1
+    : diffMonth;
+
+}
+
+// ========================================
+// GOAL FORM
+// ========================================
+function initializeGoalForm() {
+
+    const goalForm =
+    document.getElementById(
+        'goal-form'
+    );
+
+    if (!goalForm) return;
+
+    goalForm.addEventListener(
+    'submit',
+    async (e) => {
+
+        e.preventDefault();
+
+        const submitButton =
+        goalForm.querySelector(
+            'button[type="submit"]'
+        );
+
+        submitButton.disabled =
+        true;
+
+        submitButton.innerHTML =
+        `
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Menyimpan...
+        `;
+
+        const goalName =
+        document.getElementById(
+            'goal-name'
+        ).value.trim();
+
+        const goalIcon =
+        document.getElementById(
+            'goal-icon'
+        ).value;
+
+        const goalTarget =
+        Number(
+            document.getElementById(
+                'goal-target'
+            ).value
+        );
+
+        const goalDeadline =
+        document.getElementById(
+            'goal-deadline'
+        ).value;
+
+        // ============================
+        // VALIDATION
+        // ============================
+        if (
+            !goalName ||
+            !goalTarget ||
+            !goalDeadline
+        ) {
+
+            alert(
+                'Semua field wajib diisi.'
+            );
+
+            resetSubmitButton(
+                submitButton
+            );
+
+            return;
+
+        }
+
+        // ============================
+        // MONTHLY ESTIMATION
+        // ============================
+        const totalMonth =
+        calculateMonthDifference(
+            goalDeadline
+        );
+
+        const monthlySaving =
+        Math.ceil(
+            goalTarget /
+            totalMonth
+        );
+
+        const goalData = {
+
+            name:
+            goalName,
+
+            icon:
+            goalIcon,
+
+            target:
+            goalTarget,
+
+            deadline:
+            goalDeadline,
+
+            monthlySaving:
+            monthlySaving
+
+        };
+
+        try {
+
+            const response =
+            await fetch(
+                'http://localhost:5000/api/goals',
+                {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type':
+                        'application/json'
+                    },
+
+                    body: JSON.stringify(
+                        goalData
+                    )
+                }
+            );
+
+            const data =
+            await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.message ||
+                    'Gagal membuat target'
+                );
+
+            }
+
+            alert(
+`🎯 Target berhasil dibuat!
+
+Nama:
+${goalName}
+
+Target:
+Rp ${formatRupiah(goalTarget)}
+
+Estimasi tabungan:
+Rp ${formatRupiah(monthlySaving)} / bulan`
+            );
+
+            console.log(data);
+
+            goalForm.reset();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                error.message ||
+                'Terjadi kesalahan server'
+            );
+
+        } finally {
+
+            resetSubmitButton(
+                submitButton
+            );
+
+        }
+
+    });
+
+}
+
+// ========================================
+// RESET BUTTON
+// ========================================
+function resetSubmitButton(
+    button
+) {
+
+    button.disabled =
+    false;
+
+    button.innerHTML =
+    `
+    Buat Target & Kalkulasi Kalkulator AI
+    `;
+
+}
+
+// ========================================
 // LOGOUT
-// ===============================
+// ========================================
 function logoutUser() {
 
     localStorage.removeItem(
@@ -530,234 +802,9 @@ function logoutUser() {
 
 }
 
-// ===============================
-// GOAL FORM
-// ===============================
-const goalForm =
-document.getElementById(
-    'goal-form'
-);
-
-// ===============================
-// SUBMIT GOAL
-// ===============================
-goalForm.addEventListener(
-'submit',
-async (e) => {
-
-    e.preventDefault();
-
-    const submitButton =
-    goalForm.querySelector(
-        'button[type="submit"]'
-    );
-
-    submitButton.disabled =
-    true;
-
-    submitButton.innerText =
-    'Menyimpan...';
-
-    const goalData = {
-
-        name:
-        document.getElementById(
-            'goal-name'
-        ).value,
-
-        icon:
-        document.getElementById(
-            'goal-icon'
-        ).value,
-
-        target:
-        Number(
-            document.getElementById(
-                'goal-target'
-            ).value
-        ),
-
-        deadline:
-        document.getElementById(
-            'goal-deadline'
-        ).value
-
-    };
-
-    try {
-
-        const response =
-        await fetch(
-            'http://localhost:5000/api/goals',
-            {
-                method: 'POST',
-
-                headers: {
-                    'Content-Type':
-                    'application/json'
-                },
-
-                body:
-                JSON.stringify(
-                    goalData
-                )
-            }
-        );
-
-        const data =
-        await response.json();
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.message ||
-                'Gagal membuat target'
-            );
-
-        }
-
-        alert(
-            'Target berhasil dibuat!'
-        );
-
-        goalForm.reset();
-
-        loadGoals();
-
-    } catch (error) {
-
-        console.log(error);
-
-        alert(
-            error.message ||
-            'Terjadi kesalahan'
-        );
-
-    } finally {
-
-        submitButton.disabled =
-        false;
-
-        submitButton.innerText =
-        'Buat Target & Kalkulasi Kalkulator AI';
-
-    }
-
-});
-
-// ===============================
-// LOAD GOALS
-// ===============================
-async function loadGoals() {
-
-    try {
-
-        const response =
-        await fetch(
-            'http://localhost:5000/api/goals'
-        );
-
-        const data =
-        await response.json();
-
-        console.log(
-            'Goals:',
-            data
-        );
-
-    } catch (error) {
-
-        console.log(
-            'Load goals error:',
-            error
-        );
-
-    }
-
-}
-
-// ===============================
-// SCROLL TO FORM
-// ===============================
-function scrollToGoalForm() {
-
-    document
-    .getElementById(
-        'form-section'
-    )
-    .scrollIntoView({
-        behavior: 'smooth'
-    });
-
-}
-
-// ===============================
-// CARD HOVER EFFECT
-// ===============================
-const goalCards =
-document.querySelectorAll(
-    '.goal-card'
-);
-
-goalCards.forEach(card => {
-
-    card.addEventListener(
-    'mouseenter',
-    () => {
-
-        card.style.transform =
-        'translateY(-4px)';
-
-    });
-
-    card.addEventListener(
-    'mouseleave',
-    () => {
-
-        card.style.transform =
-        'translateY(0px)';
-
-    });
-
-});
-
-// ===============================
-// AUTO FORMAT RUPIAH
-// ===============================
-const goalTargetInput =
-document.getElementById(
-    'goal-target'
-);
-
-goalTargetInput.addEventListener(
-'input',
-(e) => {
-
-    let value =
-    e.target.value
-        .replace(/\D/g, '');
-
-    e.target.value =
-    value;
-
-});
-
-// ===============================
-// DEADLINE VALIDATION
-// ===============================
-const deadlineInput =
-document.getElementById(
-    'goal-deadline'
-);
-
-deadlineInput.min =
-new Date()
-.toISOString()
-.slice(0, 7);
-
-// ===============================
-// RESPONSIVE MAIN FIX
-// ===============================
+// ========================================
+// RESPONSIVE FIX
+// ========================================
 window.addEventListener(
 'resize',
 () => {
