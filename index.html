@@ -1017,7 +1017,6 @@ async function handleRegister() {
 
   }
 
-  // cek email sudah ada atau belum
   const { data: existingUser } =
   await supabaseClient
     .from('users')
@@ -1079,7 +1078,7 @@ function showSuccess() {
     overlay.style.display = 'none';
 
     window.location.href =
-    'frontend/dashboard.html';
+    './dashboard.html';
 
   }, 2400);
 
