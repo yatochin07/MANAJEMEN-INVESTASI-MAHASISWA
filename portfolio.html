@@ -403,57 +403,254 @@
   </div>
 
   <script>
-    // --- Auth Check (Memastikan user sudah login) ---
-    const token = localStorage.getItem('userToken');
-    if (!token) {
-        window.location.href = 'login.html';
+
+// ===============================
+// AUTH CHECK
+// ===============================
+const userData =
+localStorage.getItem('userData');
+
+if (!userData) {
+
+    window.location.href =
+    './index.html';
+
+}
+
+// ===============================
+// USER DATA
+// ===============================
+const user =
+JSON.parse(userData);
+
+// ===============================
+// DOM LOADED
+// ===============================
+document.addEventListener(
+'DOMContentLoaded',
+() => {
+
+    // ===========================
+    // LOAD USER UI
+    // ===========================
+    if (user) {
+
+        document.getElementById(
+            'sidebar-user-name'
+        ).innerText =
+        user.username;
+
+        document.getElementById(
+            'sidebar-user-initial'
+        ).innerText =
+        user.username
+            .charAt(0)
+            .toUpperCase();
+
     }
 
-    const user = JSON.parse(localStorage.getItem('userData'));
-    document.addEventListener('DOMContentLoaded', () => {
-       if (user) {
-        document.getElementById('sidebar-user-name').innerText = user.username;
-        document.getElementById('sidebar-user-initial').innerText = user.username.charAt(0).toUpperCase();
-       }
-    });
+    // ===========================
+    // TAB INTERACTIVITY
+    // ===========================
+    const tabs =
+    document.querySelectorAll(
+        '.tab-btn'
+    );
 
-    function logoutUser() {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        window.location.href = 'login.html';
-    }
-
-    // --- Tab Interactivity Placeholder ---
-    const tabs = document.querySelectorAll('.tab-btn');
     tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('tab-active'));
-        tab.classList.add('tab-active');
-        // Logic filter tabel bisa ditambahkan di sini nantinya via JS/Backend
-      });
+
+        tab.addEventListener(
+        'click',
+        () => {
+
+            tabs.forEach(t => {
+
+                t.classList.remove(
+                    'tab-active'
+                );
+
+            });
+
+            tab.classList.add(
+                'tab-active'
+            );
+
+        });
+
     });
 
-    async function loadPortfolio() {
+    // ===========================
+    // LOAD PORTFOLIO
+    // ===========================
+    loadPortfolio();
+
+});
+
+// ===============================
+// LOGOUT
+// ===============================
+function logoutUser() {
+
+    localStorage.removeItem(
+        'userData'
+    );
+
+    window.location.href =
+    './index.html';
+
+}
+
+// ===============================
+// LOAD PORTFOLIO
+// ===============================
+async function loadPortfolio() {
 
     try {
 
-        const response = await fetch(
-            'http://localhost:5000/api/portfolio'
+        // =======================
+        // DUMMY STATIC DATA
+        // =======================
+        const portfolioData = [
+
+            {
+                symbol: 'BBCA',
+                type: 'Saham',
+                avg: 'Rp 9.200',
+                last: 'Rp 10.100',
+                total: 'Rp 5.050.000',
+                pl: '+Rp 450.000',
+                percent: '+9.78%',
+                positive: true
+            },
+
+            {
+                symbol: 'TLKM',
+                type: 'Saham',
+                avg: 'Rp 3.900',
+                last: 'Rp 3.750',
+                total: 'Rp 3.000.000',
+                pl: '-Rp 120.000',
+                percent: '-3.85%',
+                positive: false
+            },
+
+            {
+                symbol: 'BTC/IDR',
+                type: 'Kripto',
+                avg: '920.000 K',
+                last: '1.050.000 K',
+                total: 'Rp 1.050.000',
+                pl: '+Rp 130.000',
+                percent: '+14.13%',
+                positive: true
+            }
+
+        ];
+
+        console.log(
+            'Portfolio Loaded:',
+            portfolioData
         );
-
-        const data = await response.json();
-
-        console.log(data);
 
     } catch (error) {
 
-        console.log(error);
+        console.log(
+            'Portfolio Error:',
+            error
+        );
 
     }
 
 }
 
-loadPortfolio();
+// ===============================
+// SEARCH FILTER
+// ===============================
+const searchInput =
+document.querySelector(
+'input[placeholder="Cari emiten/koin..."]'
+);
+
+if (searchInput) {
+
+    searchInput.addEventListener(
+    'input',
+    () => {
+
+        const keyword =
+        searchInput.value
+            .toLowerCase();
+
+        const rows =
+        document.querySelectorAll(
+            '.portfolio-row'
+        );
+
+        rows.forEach(row => {
+
+            const text =
+            row.innerText
+                .toLowerCase();
+
+            if (
+                text.includes(keyword)
+            ) {
+
+                row.style.display =
+                '';
+
+            } else {
+
+                row.style.display =
+                'none';
+
+            }
+
+        });
+
+    });
+
+}
+
+// ===============================
+// FAKE PRICE REFRESH BUTTON
+// ===============================
+const syncButton =
+document.querySelector(
+'button.glass'
+);
+
+if (syncButton) {
+
+    syncButton.addEventListener(
+    'click',
+    () => {
+
+        syncButton.disabled =
+        true;
+
+        syncButton.innerHTML =
+        `
+        <i class="fa-solid fa-rotate fa-spin text-indigo-400"></i>
+        Sinkronisasi...
+        `;
+
+        setTimeout(() => {
+
+            syncButton.disabled =
+            false;
+
+            syncButton.innerHTML =
+            `
+            <i class="fa-solid fa-arrows-rotate text-indigo-400"></i>
+            Sinkronisasi Harga
+            `;
+
+        }, 1800);
+
+    });
+
+}
 
   </script>
 
